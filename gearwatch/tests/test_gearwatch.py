@@ -134,6 +134,14 @@ def test_context_does_not_trigger_exclusions(cfg, ctx):
     assert (r.category, r.subcategory) == ("karabinki", "ekspresowe")
 
 
+def test_name_beats_context_on_ties(cfg):
+    # z prawdziwego raportu unknown (Skalnik)
+    r = classify(cfg, "Bluza glacier fleece women-summit navy", "Odzież > Kurtki")
+    assert r.category == "bluzy"
+    r = classify(cfg, "Kurtka fineline stretch-basalt", "Kurtki > Kurtki hardshell")
+    assert (r.category, r.subcategory) == ("kurtki", "hardshell")
+
+
 def test_excluded_brand(cfg):
     r = classify(cfg, "Kurtka Forclaz MT500 hardshell", brand="Forclaz")
     assert r.category != "kurtki"

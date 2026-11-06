@@ -88,6 +88,12 @@ def _sub_score(sub: Subcategory, t: Texts, params, shop):
     return _score(t, sub.keywords, sub.exclude, params, sub.param_range, sub.brands)
 
 
+def _name_beats(first, second) -> bool:
+    """Remis rozstrzyga nazwa: wygrywa reguła trafiona w nazwie, gdy druga ma trafienia tylko z kontekstu/opisu."""
+    named = lambda hits: any(h.startswith("nazwa:") for h in hits or [])
+    return named(first) and not named(second)
+
+
 def classify(cfg: Config, name: str, context: str = "", desc: str = "", brand: str = "",
              params: dict | None = None, shop: str | None = None) -> Result:
     t = Texts.of(name, context, desc, brand)
@@ -109,7 +115,8 @@ def classify(cfg: Config, name: str, context: str = "", desc: str = "", brand: s
     ranked = sorted(cat_scores.items(), key=lambda kv: kv[1], reverse=True)
     if not ranked or ranked[0][1] < MIN_CATEGORY:
         return Result(None, None, "poza wishlistą", cat_scores)
-    if len(ranked) > 1 and ranked[0][1] - ranked[1][1] < cat_margin:
+    if len(ranked) > 1 and ranked[0][1] - ranked[1][1] < cat_margin \
+            and not _name_beats(cat_hits.get(ranked[0][0]), cat_hits.get(ranked[1][0])):
         return Result(UNKNOWN, UNKNOWN, f"remis kategorii: {ranked[0][0]} vs {ranked[1][0]}",
                       cat_scores, hits=cat_hits)
 
@@ -129,6 +136,7 @@ def classify(cfg: Config, name: str, context: str = "", desc: str = "", brand: s
         if cat.fallback:
             return Result(cname, cat.fallback, "fallback", cat_scores, sub_scores, hits)
         return Result(cname, UNKNOWN, "brak dopasowania podkategorii", cat_scores, sub_scores, hits)
-    if len(sranked) > 1 and sranked[0][1] - sranked[1][1] < sub_margin:
+    if len(sranked) > 1 and sranked[0][1] - sranked[1][1] < sub_margin \
+            and not _name_beats(sub_hits.get(sranked[0][0]), sub_hits.get(sranked[1][0])):
         return Result(cname, UNKNOWN, f"remis: {sranked[0][0]} vs {sranked[1][0]}", cat_scores, sub_scores, hits)
     return Result(cname, sranked[0][0], "ok", cat_scores, sub_scores, hits)

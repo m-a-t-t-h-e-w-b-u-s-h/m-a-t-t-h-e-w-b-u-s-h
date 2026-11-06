@@ -175,7 +175,7 @@ categories:
         params: [waga_g, wodoodpornosc_mm, sezon]
         alert_below: 900
       softshell:
-        keywords: [softshell*, soft shell, windstopper*, schoeller*, stretch]
+        keywords: [softshell*, soft shell, windstopper*, schoeller*]
         exclude: [hardshell*, hard shell]
         season: wiosna–jesień
         temp: [-10, 15]
