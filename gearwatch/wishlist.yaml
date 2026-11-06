@@ -338,7 +338,7 @@ categories:
         params: [waga_g, r_value]
 
   buty:
-    keywords: [but, buty, butow, obuwie, boot, boots, trzewik*, kozak*]
+    keywords: [but, buty, butow, obuwie, boot, boots, trzewik*]
     fallback: inne
     subcategories:
       b2:
@@ -347,10 +347,6 @@ categories:
         size: {min: 45.5, max: 46.5}
         params: [waga_g, rozmiary]
         alert_below: 1200
-      frey_style:
-        # skórzane wysokie w stylu Frey (harness, cowboy)
-        keywords: [harness, cowboy, kowboj*, western, engineer, frye, frey]
-        params: [rozmiary]
       inne:
         keywords: []
         params: [rozmiary]
@@ -385,20 +381,7 @@ categories:
         brands: [Mammut, Arc'teryx]
         require_brand: true
         params: []
-      bootcut_levis:
-        keywords: [bootcut, boot cut, 527, 517]
-        brands: [Levi's]
-        require_brand: true
-        params: [rozmiary]
-      perfumy:
-        keywords: [azzaro, most wanted, perfum*, eau de parfum, eau de toilette]
-        brands: [Azzaro]
-        require_brand: true
-        params: []
       karta_podarunkowa:
         keywords: [karta podarunkow*, gift card, bon podarunkow*, e-karta]
         shops: [skalnik]
-        params: []
-      home_wall:
-        keywords: [home wall, homewall, scianka wspinaczkow*, scianka domow*, panel wspinaczkow*, moonboard, kilter]
         params: []

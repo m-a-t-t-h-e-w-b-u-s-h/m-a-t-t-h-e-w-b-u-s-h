@@ -218,9 +218,10 @@ def test_gift_card_only_skalnik(cfg):
     assert classify(cfg, "Karta podarunkowa 200 zł", shop="8a").category is None
 
 
-def test_levis_requires_brand(cfg):
-    assert classify(cfg, "Jeansy Levi's 527 Bootcut", brand="Levi's").subcategory == "bootcut_levis"
-    assert classify(cfg, "Jeansy Wrangler bootcut").category is None
+def test_removed_items_are_not_wishlist(cfg):
+    for name in ["Jeansy Levi's 527 Bootcut", "Perfumy Azzaro The Most Wanted", "Ścianka wspinaczkowa home wall"]:
+        r = classify(cfg, name, brand="Levi's" if "Levi" in name else "")
+        assert r.subcategory not in ("bootcut_levis", "perfumy", "home_wall")
 
 
 # --------------------------------------------------------------- ceny
