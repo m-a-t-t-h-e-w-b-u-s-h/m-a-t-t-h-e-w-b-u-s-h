@@ -13,7 +13,8 @@
 #   params        – parametry wypisywane w CLI
 #   wanted        – false: kubełek klasyfikacyjny, ukryty w wynikach, chyba że zapytasz o niego wprost
 #   season, temp  – na stałe przypisany sezon i zakres temperatur [min, max] °C
-#   size          – zakres rozmiarów (EU), sprawdzany na dostępnych wariantach
+#   size          – rozmiar sprawdzany na dostępnych wariantach: {min, max} (EU, buty)
+#                   albo {labels: [M, L]} (odzież)
 #   filters       – filtry liczbowe na parametrach, np. {pojemnosc_l: {min: 33}}
 #   param_range   – klasyfikacja po parametrze, np. {temp_komfortu_c: {max: -5}}
 #   shops         – ograniczenie do sklepów
@@ -145,20 +146,21 @@ categories:
         brands: [Fire Maple]
         params: [waga_g, czas_gotowania_min]
       inne:
+        # pozostałe palniki (nie Fire Maple X1/X1 Pro/X2 Pro) – widoczne w wynikach
         keywords: []
         params: [waga_g, czas_gotowania_min]
-        wanted: false
 
   plecaki:
     keywords: [plecak*, backpack*]
     fallback: inne
     subcategories:
-      talon:
-        # "duży Talon" – przyjąłem >= 33 l; zmień filtr, jeśli chodzi o konkretny model
-        keywords: [talon]
+      duze:
+        # duże męskie/unisex plecaki od 40 l (dowolna marka, np. Osprey Talon 44).
+        # Klasyfikacja po pojemności z nazwy/specyfikacji; bez pojemności -> plecaki/inne.
+        keywords: []
+        param_range: {pojemnosc_l: {min: 40}}
+        exclude: [damsk*, women*, womens, wmn, ws, lady, dzieci*, dzieciec*, kids, junior]
         brands: [Osprey]
-        require_brand: true
-        filters: {pojemnosc_l: {min: 33}}
         params: [pojemnosc_l, waga_g, rozmiar]
         alert_below: 600
       inne:
@@ -176,6 +178,7 @@ categories:
         exclude: [softshell*, soft shell, puch*, down]
         season: całoroczna
         temp: [-20, 15]
+        size: {labels: [M, L]}
         params: [waga_g, wodoodpornosc_mm, sezon]
         alert_below: 900
       softshell:
@@ -183,6 +186,7 @@ categories:
         exclude: [hardshell*, hard shell]
         season: wiosna–jesień
         temp: [-10, 15]
+        size: {labels: [M, L]}
         params: [waga_g, wodoodpornosc_mm, sezon]
         alert_below: 500
       inne:
@@ -199,12 +203,14 @@ categories:
         keywords: [hardshell*, hard shell, gore-tex, goretex, gtx, membran*, przeciwdeszcz*, nieprzemakal*, 3l, 2.5l, 2,5l, futurelight, h2no, dryvent, ascentshell]
         exclude: [softshell*, soft shell]
         temp: [-20, 15]
+        size: {labels: [M, L]}
         params: [waga_g, wodoodpornosc_mm]
         alert_below: 700
       softshell:
         keywords: [softshell*, soft shell, windstopper*, schoeller*]
         exclude: [hardshell*, hard shell]
         temp: [-10, 15]
+        size: {labels: [M, L]}
         params: [waga_g, wodoodpornosc_mm]
       inne:
         keywords: []
@@ -218,9 +224,11 @@ categories:
       syntetyczne:
         keywords: [syntet*, primaloft, polartec alpha, alpha, insulated, ocieplan*, coreloft, climashield, thermoball, ventrix, nano puff]
         exclude: [puch*, down, merino]
+        size: {labels: [M, L]}
         params: [waga_g, sezon]
       merino:
         keywords: [merino, wel*, wool]
+        size: {labels: [M, L]}
         params: [waga_g, sezon]
       inne:
         keywords: []

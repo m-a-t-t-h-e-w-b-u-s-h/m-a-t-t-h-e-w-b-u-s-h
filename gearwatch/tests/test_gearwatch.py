@@ -123,7 +123,6 @@ def test_parse_size():
     ("Palnik Fire Maple X1 Pro", ("palniki", "x1_pro")),
     ("Palnik Fire Maple X1", ("palniki", "x1")),
     ("Kuchenka Jetboil Flash", ("palniki", "inne")),
-    ("Plecak Osprey Talon 44", ("plecaki", "talon")),
     ("Kurtka softshell Rab Torque", ("kurtki", "softshell")),
     ("Spodnie Mammut Nordwand Gore-Tex", ("spodnie", "hardshell")),
     ("Bluza Icebreaker Merino 260", ("bluzy", "merino")),
@@ -156,6 +155,24 @@ def test_name_beats_context_on_ties(cfg):
     assert r.category == "bluzy"
     r = classify(cfg, "Kurtka fineline stretch-basalt", "Kurtki > Kurtki hardshell")
     assert (r.category, r.subcategory) == ("kurtki", "hardshell")
+
+
+@pytest.mark.parametrize("name,expected", [
+    ("Plecak Osprey Talon 44", "duze"),
+    ("Plecak Deuter Aircontact Core 45+10", "duze"),
+    ("Plecak trekkingowy Mammut Trion 50 l", "duze"),
+    ("Plecak Osprey Talon 22", "inne"),
+    ("Plecak damski Osprey Tempest 40", "inne"),
+    ("Plecak Black Diamond Speed", "inne"),  # pojemność nieznana
+])
+def test_backpacks_by_capacity(cfg, name, expected):
+    r = classify(cfg, name, params=extract_params(name))
+    assert (r.category, r.subcategory) == ("plecaki", expected)
+
+
+def test_other_stoves_are_wanted(cfg):
+    r = classify(cfg, "Kuchenka Jetboil Flash")
+    assert r.subcategory == "inne" and cfg.subcategory("palniki/inne").wanted
 
 
 def test_excluded_brand(cfg):
@@ -263,7 +280,7 @@ def test_bookmarklet_json_import(con, cfg, tmp_path):
     assert import_file(con, cfg, f, archive=False)[0] == 1
     reclassify(con, cfg)
     row = con.execute("SELECT * FROM products").fetchone()
-    assert (row["category"], row["subcategory"]) == ("plecaki", "talon")
+    assert (row["category"], row["subcategory"]) == ("plecaki", "duze")
 
 
 def test_size_filter_and_alerts(con, cfg, tmp_path):
@@ -319,3 +336,28 @@ def test_nested_breadcrumb_menu_is_flattened():
             "<span data-price-type='finalPrice' data-price-amount='10'></span></li></body></html>")
     (r,) = extract({"html": html, "url": "https://www.skalnik.pl/karabinki"})
     assert "Crashpady" not in r.context and "Karabinki" in r.context
+
+
+def test_deals_discount_and_drop(con, cfg, tmp_path):
+    _import_all(con, cfg, tmp_path)
+    con.execute("UPDATE prices SET day=date('now')")
+    # sztuczna historia: wczoraj LiteWire był droższy
+    pid = con.execute("SELECT id FROM products WHERE name LIKE '%LiteWire%'").fetchone()["id"]
+    con.execute("INSERT INTO prices VALUES (?, date('now','-1 day'), 'x', 59.9, 59.9, 50.0, 1, 't')", (pid,))
+    from gw.query import deals
+    items = deals(con, cfg, parse_query("karabinki", cfg))
+    lw = next(d for d in items if d["row"]["id"] == pid)
+    assert lw["discount"] == pytest.approx(1 - 41.93 / 59.9, abs=1e-3)
+    assert lw["drop"] == pytest.approx(1 - 41.93 / 50.0, abs=1e-3)
+    assert lw["lowest"] is True
+    assert deals(con, cfg, parse_query("karabinki", cfg), min_discount=99) == [] or \
+        all(d["drop"] for d in deals(con, cfg, parse_query("karabinki", cfg), min_discount=99))
+
+
+def test_clothing_size_labels(cfg):
+    from gw.query import size_ok
+    sub = cfg.subcategory("kurtki/hardshell")
+    assert size_ok(sub, ["L"]) is True
+    assert size_ok(sub, ["S", "XL", "XXL"]) is False
+    assert size_ok(sub, ["S/M"]) is True
+    assert size_ok(sub, []) is None

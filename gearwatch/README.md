@@ -65,7 +65,9 @@ python find.py "karabinki/ekspresowe"   # kategoria/podkategoria
 python find.py "karabinki"              # cała kategoria (bez kubełków wanted: false)
 python find.py "karabinki/hms"          # kubełek wanted: false – pokazany, bo podany wprost
 python find.py "spiwory, -10" --shop 8a --max 1500 --in-stock
-python find.py "plecaki, talon 44"      # dodatkowe słowa filtrują po nazwie
+python find.py "plecaki, osprey"        # dodatkowe słowa filtrują po nazwie
+python find.py --deals                  # najlepsze oferty: największy rabat i spadki cen
+python find.py --deals "kurtki" --min-discount 30
 python find.py --categories             # drzewo kategorii z liczbą produktów
 python find.py --history 42             # historia cen produktu #42
 ```

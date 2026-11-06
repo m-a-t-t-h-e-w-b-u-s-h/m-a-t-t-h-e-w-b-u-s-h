@@ -83,6 +83,12 @@ def size_ok(sub: Subcategory, sizes: list[str]) -> bool | None:
     """True/False, albo None gdy rozmiary nieznane."""
     if not sub.size:
         return True
+    labels = {str(x).upper() for x in sub.size.get("labels", [])}
+    if labels:  # rozmiary literowe, np. M, L ("S/M" pasuje do M)
+        toks = [t for s in sizes for t in re.split(r"[\s/\-,;|]+", str(s).upper()) if t]
+        if not toks:
+            return None
+        return any(t in labels for t in toks)
     vals = [v for v in (parse_size(s) for s in sizes) if v is not None]
     if not vals:
         return None
@@ -182,3 +188,35 @@ def format_params(sub: Subcategory, params: dict, size_unknown=False) -> str:
     if size_unknown:
         parts.append("rozmiar ? (brak wariantów – otwórz stronę produktu)")
     return " · ".join(parts)
+
+
+def deals(con, cfg: Config, q: Query, *, shop=None, min_discount=0.0, include_stale=False):
+    """Najlepsze oferty z wishlisty.
+
+    rabat   = 1 - cena_efektywna / cena_katalogowa (katalogowa = przekreślona, a gdy jej brak – aktualna;
+              dla Skalnika to zawiera Twoje 30%)
+    spadek  = 1 - cena_efektywna / najwyższa cena efektywna z ostatnich 30 dni (z historii w bazie)
+    promo   = promocja samego sklepu: 1 - cena_aktualna / cena_przekreślona (bez Twoich 30%)
+    min     = cena efektywna jest najniższa w całej historii produktu
+    """
+    found, _ = search(con, cfg, q, shop=shop, include_stale=include_stale)
+    out = []
+    for x in found:
+        r = x["row"]
+        eff = r["effective"]
+        base = r["catalog_price"] if r["catalog_price"] and r["catalog_price"] > (r["price"] or 0) else r["price"]
+        discount = 1 - eff / base if base else 0.0
+        hist = con.execute(
+            "SELECT MAX(effective) AS hi, MIN(effective) AS lo, COUNT(*) AS n FROM prices"
+            " WHERE product_id=? AND day < ? AND day >= date(?, '-30 day')", (r["id"], r["day"], r["day"])).fetchone()
+        all_lo = con.execute("SELECT MIN(effective) AS lo, COUNT(*) AS n FROM prices WHERE product_id=?",
+                             (r["id"],)).fetchone()
+        drop = 1 - eff / hist["hi"] if hist["n"] and hist["hi"] else None
+        promo = 1 - r["price"] / r["catalog_price"] if r["catalog_price"] and r["catalog_price"] > r["price"] else 0.0
+        x.update(discount=discount, drop=drop, promo=promo,
+                 lowest=all_lo["n"] > 1 and eff <= all_lo["lo"] + 0.01,
+                 below_alert=x["sub"].alert_below is not None and eff < x["sub"].alert_below)
+        if (discount > 0 and discount * 100 >= min_discount) or (drop and drop > 0):
+            out.append(x)
+    out.sort(key=lambda d: (d["below_alert"], max(d["discount"], d["drop"] or 0), d["promo"]), reverse=True)
+    return out

@@ -13,6 +13,9 @@ Przykłady:
   python find.py --history 42
   python find.py --categories               # lista kategorii/podkategorii
   python find.py --coverage                 # co już zebrano (podkategorie × sklepy)
+  python find.py --deals                    # najlepsze oferty (rabat / spadek ceny / próg alertu)
+  python find.py --deals "kurtki" --min-discount 30 --short
+  python find.py --deals --per-sub          # najlepsza oferta w każdej podkategorii
 """
 from __future__ import annotations
 
@@ -21,7 +24,7 @@ import csv
 import sys
 
 from gw import config, db
-from gw.query import format_params, money, parse_query, search
+from gw.query import deals, format_params, money, parse_query, search
 
 
 def _utf8_stdout():
@@ -122,6 +125,33 @@ def cmd_categories(con, cfg, args):
             print(f"  {cn + '/unknown':<36} {counts[(cn, 'unknown')]:>4} prod.")
 
 
+def cmd_deals(con, cfg, args):
+    q = parse_query(args.query or "", cfg)
+    items = deals(con, cfg, q, shop=args.shop, min_discount=args.min_discount, include_stale=args.stale)
+    if args.per_sub:  # najlepsza oferta w każdej podkategorii
+        best = {}
+        for d in items:
+            best.setdefault(d["sub"].path, d)
+        items = list(best.values())
+    if not items:
+        print("Brak ofert spełniających kryteria.")
+        return
+    print(f"{'rabat':>6} {'promo':>6} {'spadek':>7} {'cena ef.':>12} {'katalogowa':>12}  sklep    nazwa")
+    for d in items[: args.limit]:
+        r = d["row"]
+        base = r["catalog_price"] if r["catalog_price"] and r["catalog_price"] > (r["price"] or 0) else r["price"]
+        flags = (" 🔔" if d["below_alert"] else "") + (" ⬇min" if d["lowest"] else "")
+        drop = f"{-d['drop'] * 100:+.0f}%" if d["drop"] else "—"
+        promo = f"{d['promo'] * 100:.0f}%" if d["promo"] else "—"
+        print(f"{d['discount'] * 100:>5.0f}% {promo:>6} {drop:>7} {money(r['effective']):>12} {money(base):>12}  "
+              f"{r['shop']:<8} {r['name'][:60]}  [{d['sub'].path}]{flags}")
+        if not args.short:
+            print(f"{'':>49}{r['url']}   #{r['id']}")
+    print("\nrabat = względem ceny katalogowej (Skalnik: z Twoim -30%), promo = przecena samego sklepu,"
+          "\nspadek = względem najwyższej ceny z 30 dni,"
+          "\n🔔 = poniżej progu alertu, ⬇min = najniższa cena w historii")
+
+
 def cmd_coverage(con, cfg, args):
     """Które podkategorie mają już produkty z których sklepów – puste = strona do odwiedzenia."""
     stats = {}
@@ -167,6 +197,9 @@ def main(argv=None):
     ap.add_argument("--history", type=int, metavar="ID", help="historia cen produktu")
     ap.add_argument("--categories", action="store_true", help="lista kategorii z liczbą produktów")
     ap.add_argument("--coverage", action="store_true", help="co już zebrano: podkategorie × sklepy")
+    ap.add_argument("--deals", action="store_true", help="najlepsze oferty (rabat, spadek ceny, próg alertu)")
+    ap.add_argument("--min-discount", type=float, default=0, metavar="PROC", help="z --deals: minimalny rabat w %%")
+    ap.add_argument("--per-sub", action="store_true", help="z --deals: najlepsza oferta w każdej podkategorii")
     ap.add_argument("--wishlist", help="ścieżka do wishlist.yaml")
     ap.add_argument("--db", help="ścieżka do bazy SQLite")
     args = ap.parse_args(argv)
@@ -181,6 +214,8 @@ def main(argv=None):
         cmd_categories(con, cfg, args)
     elif args.coverage:
         cmd_coverage(con, cfg, args)
+    elif args.deals:
+        cmd_deals(con, cfg, args)
     else:
         cmd_search(con, cfg, args)
 

@@ -123,8 +123,11 @@ def extract_params(name: str, description: str = "", specs: dict | None = None, 
 
     cap = _spec(specs, "pojemnosc", "capacity", "litraz")
     p["pojemnosc_l"] = _first(NUM + r"\s*(?:l|litr\w*)\b", cap or n) or _first(NUM + r"\s*(?:l|litr\w*)\b", full)
-    if p["pojemnosc_l"] is None:  # np. "Osprey Talon 44"
-        p["pojemnosc_l"] = _first(r"talon\s+(\d{2})\b", n)
+    if p["pojemnosc_l"] is None and re.search(r"plecak|backpack", n):
+        # np. "Plecak Osprey Talon 44", "Deuter Aircontact 45+10" – liczba bez jednostki w nazwie plecaka
+        m = re.search(r"(?<![\d.,])(\d{2,3})(?:\s*\+\s*(\d{1,2}))?(?![\d.,]|\s*(?:cm|mm|g|kg|%|zl|m)\b)", n)
+        if m and 15 <= int(m.group(1)) <= 120:
+            p["pojemnosc_l"] = float(int(m.group(1)) + int(m.group(2) or 0))
 
     p["czas_gotowania_min"] = _boil_minutes(full)
     p["temp_komfortu_c"] = _temp(full, r"(?:temp\w*\s+)?komfort\w*|t\s?comf\w*|comfort")
