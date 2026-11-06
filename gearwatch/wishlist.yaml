@@ -10,6 +10,7 @@
 #
 # Pola podkategorii:
 #   keywords, exclude, brands, require_brand (true = marka musi być z listy `brands`)
+#   require_name  – true: słowo kluczowe musi być w nazwie (sam tytuł listingu nie wystarczy)
 #   params        – parametry wypisywane w CLI
 #   wanted        – false: kubełek klasyfikacyjny, ukryty w wynikach, chyba że zapytasz o niego wprost
 #   season, temp  – na stałe przypisany sezon i zakres temperatur [min, max] °C
@@ -78,16 +79,18 @@ categories:
 
   kosci_mechaniki:
     keywords: [kosc*, stoper*, nut, nuts, offset*, friend*, kam, kamy, kamow, cam, cams, camalot*, mikrokam*, mechanik*]
+    exclude: [klucz*, nut key, nut tool, key]
     subcategories:
       kosci:
         keywords: [kosc*, stoper*, nut, nuts, offset*, stopper*, wallnut*, rock*]
+        exclude: [mechaniczn*, friend*, cam, cams, camalot*, kam, kamy]
         params: [rozmiary, waga_g]
       friendy:
         keywords: [friend*, kam, kamy, cam, cams, camalot*, c4, dragon*, totem*, ultralight]
-        exclude: [mikro*, micro*, z4, c3, x4]
+        exclude: [mikro*, micro*, z4, c3, x4, zero friend*, zero]
         params: [rozmiar, zakres_mm, waga_g]
       mikrokamy:
-        keywords: [mikrokam*, mikro*, micro*, z4, c3, x4]
+        keywords: [mikrokam*, mikro*, micro*, z4, c3, x4, zero friend*, zero]
         params: [rozmiar, waga_g]
 
   ekspresy:
@@ -186,6 +189,7 @@ categories:
         alert_below: 900
       softshell:
         keywords: [softshell*, soft shell, windstopper*, schoeller*]
+        require_name: true   # listing "softshell" zawiera też zwykłe spodnie/kurtki trekkingowe
         exclude: [hardshell*, hard shell]
         season: wiosna–jesień
         temp: [-10, 15]
@@ -211,6 +215,7 @@ categories:
         alert_below: 700
       softshell:
         keywords: [softshell*, soft shell, windstopper*, schoeller*]
+        require_name: true   # listing "softshell" zawiera też zwykłe spodnie/kurtki trekkingowe
         exclude: [hardshell*, hard shell]
         temp: [-10, 15]
         size: {labels: [M, L]}

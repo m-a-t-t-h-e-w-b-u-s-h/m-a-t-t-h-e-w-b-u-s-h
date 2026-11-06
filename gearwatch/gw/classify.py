@@ -85,6 +85,8 @@ def _sub_score(sub: Subcategory, t: Texts, params, shop):
         return None, ["inny sklep"]
     if sub.require_brand and not _brand_matches(t, sub.brands):
         return None, ["brak wymaganej marki"]
+    if sub.require_name and not matching_keywords(t.name, sub.keywords):
+        return None, ["brak słowa kluczowego w nazwie"]
     return _score(t, sub.keywords, sub.exclude, params, sub.param_range, sub.brands)
 
 

@@ -152,7 +152,7 @@ def extract_params(name: str, description: str = "", specs: dict | None = None, 
 
 
 GENDER_WORDS = {
-    "k": [r"damsk\w*", r"women\w*", r"wmn", r"ws", r"lady", r"ladies", r"female", r"kobiet\w*", r"kobiec\w*"],
+    "k": [r"damsk\w*", r"women\w*", r"woman", r"wmn", r"ws", r"lady", r"ladies", r"female", r"kobiet\w*", r"kobiec\w*"],
     "m": [r"mesk\w*", r"men", r"mens", r"ms", r"male", r"mezczyz\w*"],
     "d": [r"dzieci\w*", r"dzieciec\w*", r"kids?", r"junior\w*", r"jr", r"chlopiec\w*", r"dziewczyn\w*", r"youth"],
 }

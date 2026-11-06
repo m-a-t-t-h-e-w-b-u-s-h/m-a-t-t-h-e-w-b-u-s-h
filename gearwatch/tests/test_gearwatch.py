@@ -175,6 +175,23 @@ def test_other_stoves_are_wanted(cfg):
     assert r.subcategory == "inne" and cfg.subcategory("palniki/inne").wanted
 
 
+@pytest.mark.parametrize("name,ctx,expected", [
+    # z prawdziwych zrzutów Skalnika
+    ("Kość mechaniczna friend 0.75", "Kości i mechaniki", ("kosci_mechaniki", "friendy")),
+    ("Zestaw kości mechanicznych friend set 0.4, 0.5, 0.75", "", ("kosci_mechaniki", "friendy")),
+    ("Kość mechaniczna zero friend 0.2", "", ("kosci_mechaniki", "mikrokamy")),
+    ("Zestaw kości mechanicznych zero friend set 0.1-0.3", "", ("kosci_mechaniki", "mikrokamy")),
+    ("Kości superlight offset rocks 5-10", "", ("kosci_mechaniki", "kosci")),
+    ("Zestaw kości stopper set classic #5-11", "", ("kosci_mechaniki", "kosci")),
+    ("Klucz do kości nut key", "", (None, None)),
+    ("Spodnie rago-dark grey-light grey", "Spodnie softshell", ("spodnie", "inne")),
+    ("Spodnie quest softshell-tnf black", "Spodnie softshell", ("spodnie", "softshell")),
+])
+def test_real_skalnik_names(cfg, name, ctx, expected):
+    r = classify(cfg, name, ctx)
+    assert (r.category, r.subcategory) == expected, r
+
+
 def test_excluded_brand(cfg):
     r = classify(cfg, "Kurtka Forclaz MT500 hardshell", brand="Forclaz")
     assert r.category != "kurtki"
@@ -373,6 +390,7 @@ def test_clothing_size_labels(cfg):
     ("Kurtka Rab Downpour", "", {"Płeć": "Mężczyzna"}, "m"),
     ("Kurtka Rab Downpour", "", {"Płeć": "Kobieta"}, "k"),
     ("Kurtka dziecięca Reima", "", {}, "d"),
+    ("Spodnie rise woman-wine red-baton rouge", "", {}, "k"),
     ("Plecak Osprey Talon 44", "", {}, "u"),
     ("Kurtka X", "Menu > Damskie > Męskie > Dziecięce", {}, "u"),
 ])

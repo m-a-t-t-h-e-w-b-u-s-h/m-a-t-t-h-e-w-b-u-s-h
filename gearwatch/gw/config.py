@@ -19,6 +19,7 @@ class Subcategory:
     exclude: list[str] = field(default_factory=list)
     brands: list[str] = field(default_factory=list)
     require_brand: bool = False
+    require_name: bool = False
     params: list[str] = field(default_factory=list)
     wanted: bool = True
     season: str | None = None
@@ -103,6 +104,7 @@ def load(path: str | Path | None = None) -> Config:
                 exclude=_strs(s.get("exclude")),
                 brands=_strs(s.get("brands")),
                 require_brand=bool(s.get("require_brand")),
+                require_name=bool(s.get("require_name")),
                 params=s.get("params") or [],
                 wanted=s.get("wanted", True),
                 season=s.get("season"),
