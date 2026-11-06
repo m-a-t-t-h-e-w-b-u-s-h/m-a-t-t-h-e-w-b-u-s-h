@@ -7,7 +7,8 @@ Przykłady:
   python find.py "spiwory, -10" --shop 8a --max 1500
   python find.py "karabinki/hms"            # kubełek z wanted: false, bo podany jawnie
   python find.py --unknown                  # raport produktów bez jednoznacznej podkategorii
-  python find.py --unknown --short          # jedna linia na produkt
+  python find.py "karabinki/inne" --short --limit 200   # jedna linia na produkt
+  python find.py --unknown --short          # j.w. dla raportu unknown
   python find.py --unknown --csv unknown.csv
   python find.py --history 42
   python find.py --categories               # lista kategorii/podkategorii
@@ -34,7 +35,12 @@ def cmd_search(con, cfg, args):
     results, unknown = search(con, cfg, q, shop=args.shop, max_price=args.max, in_stock=args.in_stock,
                               include_unwanted=args.all, include_stale=args.stale)
     multi = len({x["sub"].path for x in results}) > 1
-    for x in results[: args.limit]:
+    if args.short:
+        for x in results[: args.limit]:
+            r = x["row"]
+            print(f"{money(r['effective']):>12}  {r['shop']:<8} #{r['id']:<5} {r['name'][:80]}"
+                  + (f"  [{x['sub'].path}]" if multi else ""))
+    for x in ([] if args.short else results[: args.limit]):
         r, sub = x["row"], x["sub"]
         price = money(r["effective"])
         extra = f" (cena {money(r['price'])})" if r["price"] != r["effective"] else ""
@@ -127,7 +133,7 @@ def main(argv=None):
     ap.add_argument("--limit", type=int, default=50)
     ap.add_argument("--unknown", action="store_true", help="raport subcategory: unknown")
     ap.add_argument("--csv", help="z --unknown: zapisz raport do CSV")
-    ap.add_argument("--short", action="store_true", help="z --unknown: jedna linia na produkt")
+    ap.add_argument("--short", action="store_true", help="jedna linia na produkt (wyniki i --unknown)")
     ap.add_argument("--history", type=int, metavar="ID", help="historia cen produktu")
     ap.add_argument("--categories", action="store_true", help="lista kategorii z liczbą produktów")
     ap.add_argument("--wishlist", help="ścieżka do wishlist.yaml")
