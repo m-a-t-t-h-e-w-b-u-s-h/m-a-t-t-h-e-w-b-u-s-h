@@ -68,6 +68,9 @@ def connect(path: str | Path | None = None) -> sqlite3.Connection:
     con = sqlite3.connect(path)
     con.row_factory = sqlite3.Row
     con.executescript(SCHEMA)
+    cols = {r[1] for r in con.execute("PRAGMA table_info(products)")}
+    if "image" not in cols:  # migracja starszych baz
+        con.execute("ALTER TABLE products ADD COLUMN image TEXT")
     return con
 
 

@@ -53,10 +53,10 @@ def _upsert(con, cfg: Config, shop: str, rec: Record, captured_at: str, source: 
     row = con.execute("SELECT * FROM products WHERE shop=? AND url=?", (shop, rec.url)).fetchone()
     if row is None:
         cur = con.execute(
-            "INSERT INTO products (shop,url,name,brand,context,description,specs,sizes,method,first_seen,last_seen)"
-            " VALUES (?,?,?,?,?,?,?,?,?,?,?)",
+            "INSERT INTO products (shop,url,name,brand,context,description,specs,sizes,method,first_seen,last_seen,image)"
+            " VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",
             (shop, rec.url, rec.name, rec.brand, rec.context, rec.description, db.dumps(rec.specs),
-             db.dumps(rec.sizes), rec.method, captured_at, captured_at))
+             db.dumps(rec.sizes), rec.method, captured_at, captured_at, rec.image or None))
         pid = cur.lastrowid
     else:
         pid = row["id"]
@@ -73,6 +73,9 @@ def _upsert(con, cfg: Config, shop: str, rec: Record, captured_at: str, source: 
              db.dumps(rec.sizes) if detail or rec.sizes else row["sizes"],
              rec.method if detail else row["method"],
              captured_at, pid))
+        if rec.image:
+            con.execute("UPDATE products SET image=? WHERE id=? AND (image IS NULL OR ?)",
+                        (rec.image, pid, int(detail)))
     if rec.price is not None:
         day = captured_at[:10]
         prev = con.execute("SELECT captured_at FROM prices WHERE product_id=? AND day=?", (pid, day)).fetchone()

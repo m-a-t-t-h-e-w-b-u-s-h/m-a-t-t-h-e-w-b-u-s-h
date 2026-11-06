@@ -92,6 +92,18 @@ Współczynnik ustawiasz w `wishlist.yaml` → `shops`.
 nazwa kategorii/podkategorii (bez polskich znaków też działa) albo dowolne
 słowo, które musi wystąpić w nazwie produktu.
 
+## Strona w przeglądarce
+
+```
+python web.py            # otwiera http://localhost:8000
+python web.py --lan      # dodatkowo adres dla telefonu w tym samym Wi-Fi
+```
+
+Zakładki **Wyniki / Najlepsze oferty / Do poprawy / Pokrycie**, listy
+kategorii, podkategorii i sklepu, przyciski płci, pola ceny max, temperatury
+i rabatu, „Historia ceny” z wykresem. Strona czyta tę samą bazę co `find.py`;
+po `refresh.py` wystarczy odświeżyć kartę. Zatrzymanie: Ctrl+C w terminalu.
+
 ## Kategorie, podkategorie i raport `unknown`
 
 Reguły są w `wishlist.yaml` (opis składni na początku pliku). Każdy produkt
@@ -158,6 +170,7 @@ python -m pytest -q
 
 ```
 find.py, refresh.py        CLI
+web.py, gw/web/index.html  strona w przeglądarce (lokalna)
 wishlist.yaml              wishlista + reguły klasyfikacji
 bookmarklet/               capture.js, generator bookmarklet.html
 gw/extract.py              JSON-LD / Magento / heurystyka -> rekordy

@@ -158,7 +158,7 @@ def cmd_coverage(con, cfg, args):
     """Które podkategorie mają już produkty z których sklepów – puste = strona do odwiedzenia."""
     stats = {}
     for r in con.execute(
-            """SELECT p.category, p.subcategory, p.shop, COUNT(*) AS n, MAX(pr.day) AS last
+            """SELECT p.category, p.subcategory, p.shop, COUNT(DISTINCT p.id) AS n, MAX(pr.day) AS last
                FROM products p LEFT JOIN prices pr ON pr.product_id = p.id
                GROUP BY 1, 2, 3"""):
         stats[(r["category"], r["subcategory"], r["shop"])] = (r["n"], r["last"])

@@ -31,6 +31,7 @@ class Record:
     specs: dict = field(default_factory=dict)
     sizes: list[str] = field(default_factory=list)
     context: str = ""
+    image: str = ""
     method: str = ""
     kind: str = "listing"  # listing | product
 
@@ -55,6 +56,25 @@ def parse_price(v) -> float | None:
     if re.fullmatch(r"\d+([.,]\d+)?", s):
         return float(s.replace(",", "."))
     return None
+
+
+def _img_url(scope, base_url: str) -> str:
+    """Adres zdjęcia z kafelka/strony – z pominięciem placeholderów leniwego ładowania."""
+    for img in scope.find_all("img"):
+        for attr in ("data-src", "data-original", "data-lazy", "src", "data-srcset", "srcset"):
+            v = (img.get(attr) or "").strip().split(",")[0].split(" ")[0]
+            if v and not v.startswith("data:") and not v.endswith((".svg", ".gif")) and "placeholder" not in v:
+                return urljoin(base_url, v)
+    return ""
+
+
+def _ld_image(node) -> str:
+    img = node.get("image")
+    if isinstance(img, list) and img:
+        img = img[0]
+    if isinstance(img, dict):
+        img = img.get("url") or img.get("contentUrl")
+    return img if isinstance(img, str) else ""
 
 
 def _text(el) -> str:
@@ -140,6 +160,7 @@ def _record_from_jsonld(node, base_url: str) -> Record | None:
         available=available,
         description=re.sub(r"<[^>]+>", " ", str(node.get("description") or "")),
         sizes=sizes,
+        image=urljoin(base_url, _ld_image(node)) if _ld_image(node) else "",
         method="jsonld",
     )
 
@@ -288,7 +309,8 @@ def _magento_tiles(soup: BeautifulSoup, base_url: str, context: str) -> list[Rec
         out.append(Record(
             url=url,
             name=_tile_name(tile, url, base_url),
-            price=final, catalog_price=old, context=context, method="magento-tile",
+            price=final, catalog_price=old, context=context, image=_img_url(tile, base_url),
+            method="magento-tile",
         ))
     return [r for r in out if r.name]
 
@@ -319,8 +341,8 @@ def _generic_tiles(soup: BeautifulSoup, base_url: str, context: str) -> list[Rec
                 if url not in found:
                     final, old = _prices_from_text(_text(el))
                     name = _tile_name(el, url, base_url)
-                    found[url] = Record(url=url, name=name, price=final, catalog_price=old,
-                                        context=context, method="generic-tile")
+                    found[url] = Record(url=url, name=name, price=final, catalog_price=old, context=context,
+                                        image=_img_url(el, base_url), method="generic-tile")
                 break
             if len(hrefs) > 1:
                 break
@@ -365,6 +387,9 @@ def extract(capture: dict) -> list[Record]:
         rec.sizes = rec.sizes or _sizes(soup)
         rec.context = context
         rec.kind = "product"
+        if not rec.image:
+            og = soup.select_one("meta[property='og:image']")
+            rec.image = urljoin(base_url, og.get("content")) if og and og.get("content") else _img_url(main, base_url)
         if not rec.brand:
             for k, v in rec.specs.items():
                 if k.lower() in ("marka", "producent", "brand"):
@@ -382,6 +407,7 @@ def extract(capture: dict) -> list[Record]:
             if t.url in by_url:
                 r = by_url[t.url]
                 r.price, r.catalog_price = t.price, r.catalog_price or t.catalog_price
+                r.image = r.image or t.image
                 r.method += "+" + t.method
             else:
                 by_url[t.url] = t

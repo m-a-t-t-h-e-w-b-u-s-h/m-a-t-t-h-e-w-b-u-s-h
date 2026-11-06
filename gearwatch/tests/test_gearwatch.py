@@ -445,3 +445,21 @@ def test_real_skalnik_names_batch2(cfg, name, expected):
 ])
 def test_real_skalnik_names_batch3(cfg, name, expected):
     assert classify(cfg, name, params=extract_params(name)).category == expected
+
+
+
+def test_webapi(con, cfg, tmp_path):
+    from gw import webapi
+    _import_all(con, cfg, tmp_path)
+    con.execute("UPDATE prices SET day=date('now')")
+    d = webapi.api_search(con, cfg, {"cat": "karabinki", "sub": "ekspresowe"})
+    assert [i["name"] for i in d["items"]] == ["Karabinek Black Diamond LiteWire"]
+    d = webapi.api_search(con, cfg, {"q": "hardshell", "plec": "wszystkie"})
+    assert d["items"] and all(i["path"].endswith("hardshell") for i in d["items"])
+    assert webapi.api_deals(con, cfg, {"cat": "karabinki"})["items"][0]["discount"] > 0
+    cov = {r["path"]: r["shops"] for r in webapi.api_coverage(con, cfg, {})["rows"]}
+    assert cov["karabinki/ekspresowe"]["skalnik"]["n"] == 1
+    pid = d["items"][0]["id"]
+    assert webapi.api_history(con, cfg, {"id": pid})["points"]
+    with pytest.raises(ValueError):
+        webapi.build_query(cfg, {"cat": "nie-ma"})

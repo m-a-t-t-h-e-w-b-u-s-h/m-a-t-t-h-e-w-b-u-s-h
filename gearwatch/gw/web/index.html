@@ -1,0 +1,306 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>gearwatch</title>
+<style>
+:root {
+  --bg: #f6f7f5; --panel: #ffffff; --text: #1d2420; --muted: #66706a; --line: #dfe3df;
+  --accent: #1b5e20; --accent-soft: #e3efe3; --warn: #b26a00; --bad: #b3261e; --good: #1b7a35;
+  --chip: #eef1ee; --shadow: 0 1px 2px rgba(0,0,0,.06);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #121513; --panel: #1b201d; --text: #e6ebe7; --muted: #9aa49d; --line: #2c332e;
+    --accent: #7cc884; --accent-soft: #1f3322; --warn: #e0a64a; --bad: #ef8a82; --good: #7cc884;
+    --chip: #252c27; --shadow: none;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #121513; --panel: #1b201d; --text: #e6ebe7; --muted: #9aa49d; --line: #2c332e;
+  --accent: #7cc884; --accent-soft: #1f3322; --warn: #e0a64a; --bad: #ef8a82; --good: #7cc884;
+  --chip: #252c27; --shadow: none;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--text);
+       font: 15px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+header { position: sticky; top: 0; z-index: 5; background: var(--panel); border-bottom: 1px solid var(--line); }
+.wrap { max-width: 1180px; margin: 0 auto; padding: 0 16px; }
+.top { display: flex; align-items: center; gap: 16px; padding: 10px 0; flex-wrap: wrap; }
+.brand { font-weight: 700; font-size: 18px; letter-spacing: .2px; }
+.brand span { color: var(--accent); }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; flex-wrap: wrap; }
+.seg button { border: 0; background: transparent; color: var(--text); padding: 7px 12px; font: inherit; cursor: pointer; }
+.seg button + button { border-left: 1px solid var(--line); }
+.seg button.on { background: var(--accent); color: var(--panel); font-weight: 600; }
+.filters { display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: end; padding: 10px 0 12px; }
+.f { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.f > span { font-size: 12px; color: var(--muted); }
+input[type=text], input[type=number], select {
+  font: inherit; color: var(--text); background: var(--bg); border: 1px solid var(--line);
+  border-radius: 7px; padding: 6px 9px; min-width: 0; }
+input[type=text] { width: 240px; }
+input[type=number] { width: 92px; }
+label.chk { display: inline-flex; gap: 6px; align-items: center; font-size: 14px; cursor: pointer; padding-bottom: 6px; }
+.only-deals { display: none; }
+body.tab-deals .only-deals { display: flex; }
+body.tab-unknown .filters, body.tab-coverage .filters { display: none; }
+main { padding: 14px 0 40px; }
+.summary { color: var(--muted); margin: 0 0 10px; font-size: 14px; }
+.list { display: grid; gap: 8px; }
+.card { display: grid; grid-template-columns: 72px 1fr auto; gap: 12px; align-items: center;
+        background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 10px; box-shadow: var(--shadow); }
+.thumb { width: 72px; height: 72px; border-radius: 8px; background: var(--chip); object-fit: contain; }
+.name { font-weight: 600; color: var(--text); text-decoration: none; }
+.name:hover { text-decoration: underline; }
+.meta { font-size: 13px; color: var(--muted); margin-top: 2px; }
+.tags { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 5px; }
+.tag { font-size: 12px; background: var(--chip); border-radius: 999px; padding: 1px 8px; }
+.tag.shop { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+.tag.good { color: var(--good); font-weight: 600; }
+.tag.warn { color: var(--warn); font-weight: 600; }
+.price { text-align: right; white-space: nowrap; }
+.price b { font-size: 18px; display: block; }
+.price s { display: block; color: var(--muted); font-size: 13px; }
+.price button { margin-top: 6px; }
+.btn { font: inherit; font-size: 13px; color: var(--accent); background: transparent; border: 1px solid var(--line);
+       border-radius: 7px; padding: 4px 10px; cursor: pointer; }
+table { width: 100%; border-collapse: collapse; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+th, td { text-align: left; padding: 7px 10px; border-bottom: 1px solid var(--line); font-size: 14px; vertical-align: top; }
+th { font-size: 12px; color: var(--muted); font-weight: 600; }
+td.miss { color: var(--bad); }
+td.ok { color: var(--good); }
+.tablewrap { overflow-x: auto; }
+.empty { padding: 30px; text-align: center; color: var(--muted); background: var(--panel); border: 1px dashed var(--line); border-radius: 10px; }
+.err { color: var(--bad); }
+dialog { border: 1px solid var(--line); border-radius: 12px; background: var(--panel); color: var(--text);
+         width: min(720px, calc(100vw - 32px)); padding: 16px; }
+dialog::backdrop { background: rgba(0,0,0,.4); }
+.chart { width: 100%; height: 240px; }
+.chart .grid { stroke: var(--line); }
+.chart .lineE { stroke: var(--accent); fill: none; stroke-width: 2.2; }
+.chart .lineP { stroke: var(--muted); fill: none; stroke-width: 1.4; stroke-dasharray: 4 3; }
+.chart text { fill: var(--muted); font-size: 11px; }
+.chart circle { fill: var(--accent); }
+.legend { display: flex; gap: 16px; font-size: 13px; color: var(--muted); }
+@media (max-width: 640px) {
+  .card { grid-template-columns: 56px 1fr; }
+  .thumb { width: 56px; height: 56px; }
+  .price { grid-column: 1 / -1; text-align: left; display: flex; gap: 12px; align-items: baseline; flex-wrap: wrap; }
+  .price s, .price b { display: inline; }
+  .price button { margin-top: 0; }
+  input[type=text] { width: 100%; }
+  .f.grow { flex: 1 1 100%; }
+}
+</style>
+</head>
+<body class="tab-search">
+<header>
+  <div class="wrap">
+    <div class="top">
+      <div class="brand">gear<span>watch</span></div>
+      <div class="seg" id="tabs">
+        <button data-tab="search" class="on">Wyniki</button>
+        <button data-tab="deals">Najlepsze oferty</button>
+        <button data-tab="unknown">Do poprawy</button>
+        <button data-tab="coverage">Pokrycie</button>
+      </div>
+    </div>
+    <div class="filters">
+      <label class="f grow"><span>Szukaj (np. „hardshell, -5”, „black diamond”)</span>
+        <input type="text" id="q" placeholder="wpisz i naciśnij Enter"></label>
+      <label class="f"><span>Kategoria</span><select id="cat"><option value="">wszystkie</option></select></label>
+      <label class="f"><span>Podkategoria</span><select id="sub"><option value="">wszystkie</option></select></label>
+      <label class="f"><span>Sklep</span><select id="shop"><option value="">oba</option></select></label>
+      <div class="f"><span>Płeć</span>
+        <div class="seg" id="plec">
+          <button data-v="meskie">Męskie</button><button data-v="damskie">Damskie</button>
+          <button data-v="dzieciece">Dziecięce</button><button data-v="wszystkie">Wszystkie</button>
+        </div></div>
+      <label class="f"><span>Cena max (zł)</span><input type="number" id="max" min="0" step="10"></label>
+      <label class="f"><span>Temperatura (°C)</span><input type="number" id="temp" step="1"></label>
+      <label class="f only-deals"><span>Rabat min (%)</span><input type="number" id="min_discount" min="0" max="95" step="5"></label>
+      <label class="chk only-deals"><input type="checkbox" id="per_sub"> najlepsza w każdej podkategorii</label>
+      <label class="chk"><input type="checkbox" id="in_stock"> tylko dostępne</label>
+      <label class="chk"><input type="checkbox" id="all"> pokaż ukryte (HMS, inne)</label>
+      <label class="chk"><input type="checkbox" id="stale"> starsze ceny</label>
+      <button class="btn" id="reset">Wyczyść</button>
+    </div>
+  </div>
+</header>
+<main class="wrap">
+  <p class="summary" id="summary"></p>
+  <div id="out"></div>
+</main>
+<dialog id="hist">
+  <div style="display:flex;justify-content:space-between;gap:12px;align-items:start">
+    <div><b id="hTitle"></b><div class="meta" id="hMeta"></div></div>
+    <button class="btn" onclick="document.getElementById('hist').close()">Zamknij</button>
+  </div>
+  <svg class="chart" id="hChart" viewBox="0 0 700 240" preserveAspectRatio="none"></svg>
+  <div class="legend"><span>— cena efektywna</span><span>- - cena w sklepie</span></div>
+  <div class="tablewrap" style="margin-top:10px"><table id="hTable"></table></div>
+</dialog>
+<script>
+const $ = id => document.getElementById(id);
+const pln = v => v == null ? "—" : v.toLocaleString("pl-PL", {minimumFractionDigits: 2, maximumFractionDigits: 2}) + " zł";
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const PLEC = {m: "męskie", k: "damskie", d: "dziecięce", u: "unisex"};
+let META = null, TAB = "search", GENDER = "meskie", timer = null;
+
+const store = {
+  get() { try { return JSON.parse(localStorage.getItem("gw") || "{}"); } catch { return {}; } },
+  set(v) { try { localStorage.setItem("gw", JSON.stringify(v)); } catch {} },
+};
+
+function state() {
+  return { tab: TAB, q: $("q").value, cat: $("cat").value, sub: $("sub").value, shop: $("shop").value,
+           plec: GENDER, max: $("max").value, temp: $("temp").value, min_discount: $("min_discount").value,
+           per_sub: $("per_sub").checked, in_stock: $("in_stock").checked, all: $("all").checked, stale: $("stale").checked };
+}
+
+function fillSubs() {
+  const cat = $("cat").value, sel = $("sub"), keep = sel.value;
+  sel.innerHTML = '<option value="">wszystkie</option>';
+  if (cat && META.categories[cat]) for (const s of META.categories[cat])
+    sel.insertAdjacentHTML("beforeend", `<option value="${esc(s.name)}">${esc(s.name)}${s.wanted ? "" : " (ukryte)"}</option>`);
+  sel.value = [...sel.options].some(o => o.value === keep) ? keep : "";
+}
+
+function setTab(t) {
+  TAB = t;
+  document.body.className = "tab-" + t;
+  for (const b of $("tabs").children) b.classList.toggle("on", b.dataset.tab === t);
+  load();
+}
+function setGender(g) {
+  GENDER = g;
+  for (const b of $("plec").children) b.classList.toggle("on", b.dataset.v === g);
+}
+
+async function api(path, params) {
+  const qs = new URLSearchParams();
+  for (const [k, v] of Object.entries(params || {})) if (v !== "" && v !== false && v != null) qs.set(k, v === true ? "1" : v);
+  const r = await fetch(path + "?" + qs);
+  const data = await r.json();
+  if (!r.ok) throw new Error(data.error || r.statusText);
+  return data;
+}
+
+function schedule() { clearTimeout(timer); timer = setTimeout(load, 250); }
+
+async function load() {
+  const st = state(); store.set(st);
+  const out = $("out"), sum = $("summary");
+  sum.textContent = "Ładowanie…";
+  try {
+    if (TAB === "search" || TAB === "deals") {
+      const params = {q: st.q, cat: st.cat, sub: st.sub, shop: st.shop, plec: st.plec, max: st.max, temp: st.temp,
+                      in_stock: st.in_stock, all: st.all, stale: st.stale};
+      if (TAB === "deals") Object.assign(params, {min_discount: st.min_discount, per_sub: st.per_sub});
+      const d = await api(TAB === "deals" ? "/api/deals" : "/api/search", params);
+      sum.textContent = `${d.total} produktów` + (d.items.length < d.total ? ` (pokazuję ${d.items.length})` : "")
+        + (d.unknown ? ` · ${d.unknown} bez podkategorii – zakładka „Do poprawy”` : "")
+        + (TAB === "deals" ? " · rabat liczony od ceny katalogowej (Skalnik: z Twoim −30%), promo = przecena sklepu" : "");
+      out.innerHTML = d.items.length ? `<div class="list">${d.items.map(card).join("")}</div>`
+                                      : `<div class="empty">Brak dopasowań. Spróbuj zmienić filtry albo zaznacz „starsze ceny”.</div>`;
+    } else if (TAB === "unknown") {
+      const d = await api("/api/unknown");
+      sum.textContent = `${d.total} produktów bez jednoznacznej podkategorii – popraw reguły w wishlist.yaml i uruchom refresh.py --reclassify`;
+      out.innerHTML = d.items.length ? `<div class="tablewrap"><table><tr><th>#</th><th>Kategoria</th><th>Powód</th><th>Produkt</th><th>Trafienia</th></tr>${
+        d.items.map(r => `<tr><td>${r.id}</td><td>${esc(r.category)}</td><td>${esc(r.reason)}</td>
+          <td><a class="name" href="${esc(r.url)}" target="_blank" rel="noopener">${esc(r.name)}</a><div class="meta">${esc(r.shop)}</div></td>
+          <td class="meta">${esc(JSON.stringify(r.hits))}</td></tr>`).join("")}</table></div>`
+        : `<div class="empty">Wszystko sklasyfikowane 🎉</div>`;
+    } else {
+      const d = await api("/api/coverage");
+      const miss = d.rows.reduce((n, r) => n + Object.values(r.shops).filter(c => c && !c.n).length, 0);
+      sum.textContent = `Brakuje ${miss} par podkategoria/sklep – „brak” = tej strony jeszcze nie odwiedziłeś (albo sklep nie ma takich produktów)`;
+      out.innerHTML = `<div class="tablewrap"><table><tr><th>Podkategoria</th>${d.shops.map(s => `<th>${esc(s)}</th>`).join("")}</tr>${
+        d.rows.map(r => `<tr><td>${esc(r.path)}</td>${d.shops.map(s => {
+          const c = r.shops[s];
+          if (!c) return `<td class="meta">n/d</td>`;
+          return c.n ? `<td class="ok">${c.n} prod. <span class="meta">(${esc(c.last)})</span></td>` : `<td class="miss">brak</td>`;
+        }).join("")}</tr>`).join("")}</table></div>`;
+    }
+  } catch (e) {
+    sum.innerHTML = `<span class="err">Błąd: ${esc(e.message)}</span>`;
+    out.innerHTML = "";
+  }
+}
+
+function card(it) {
+  const tags = [`<span class="tag shop">${esc(it.shop)}</span>`, `<span class="tag">${esc(it.path)}</span>`];
+  if (it.plec && it.plec !== "u") tags.push(`<span class="tag">${PLEC[it.plec]}</span>`);
+  if (it.available === 0) tags.push(`<span class="tag warn">niedostępny</span>`);
+  if (it.discount) tags.push(`<span class="tag good">rabat −${Math.round(it.discount * 100)}%</span>`);
+  if (it.promo) tags.push(`<span class="tag good">promo sklepu −${Math.round(it.promo * 100)}%</span>`);
+  if (it.drop) tags.push(`<span class="tag good">spadek −${Math.round(it.drop * 100)}% (30 dni)</span>`);
+  if (it.below_alert) tags.push(`<span class="tag warn">🔔 poniżej progu ${pln(it.alert_below)}</span>`);
+  if (it.lowest) tags.push(`<span class="tag good">⬇ najniższa w historii</span>`);
+  const old = it.price !== it.effective ? `<s>${pln(it.price)}</s>` : (it.catalog && it.catalog > it.price ? `<s>${pln(it.catalog)}</s>` : "");
+  const img = it.image ? `<img class="thumb" loading="lazy" src="${esc(it.image)}" alt="" referrerpolicy="no-referrer" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'thumb'}))">`
+                       : `<div class="thumb"></div>`;
+  return `<div class="card">${img}
+    <div><a class="name" href="${esc(it.url)}" target="_blank" rel="noopener">${esc(it.name)}</a>
+      ${it.params ? `<div class="meta">${esc(it.params)}</div>` : ""}
+      <div class="tags">${tags.join("")}<span class="tag">#${it.id} · ${esc(it.day)}</span></div></div>
+    <div class="price"><b>${pln(it.effective)}</b>${old}<button class="btn" onclick="history_(${it.id})">Historia ceny</button></div>
+  </div>`;
+}
+
+async function history_(id) {
+  const d = await api("/api/history", {id});
+  $("hTitle").textContent = d.product.name;
+  $("hMeta").innerHTML = `${esc(d.product.shop)} · ${esc(d.product.category)}/${esc(d.product.subcategory)} · <a href="${esc(d.product.url)}" target="_blank" rel="noopener">otwórz w sklepie</a>`;
+  const pts = d.points, svg = $("hChart"), W = 700, H = 240, P = {l: 56, r: 12, t: 12, b: 26};
+  const vals = pts.flatMap(p => [p.effective, p.price]).filter(v => v != null);
+  if (!vals.length) { svg.innerHTML = ""; }
+  else {
+    let lo = Math.min(...vals), hi = Math.max(...vals); if (lo === hi) { lo *= .9; hi *= 1.1; }
+    const x = i => P.l + (pts.length === 1 ? (W - P.l - P.r) / 2 : i * (W - P.l - P.r) / (pts.length - 1));
+    const y = v => P.t + (hi - v) * (H - P.t - P.b) / (hi - lo);
+    const line = key => pts.map((p, i) => p[key] == null ? "" : `${i && pts[i-1][key] != null ? "L" : "M"}${x(i)},${y(p[key])}`).join("");
+    let g = "";
+    for (let k = 0; k <= 4; k++) { const v = lo + (hi - lo) * k / 4;
+      g += `<line class="grid" x1="${P.l}" x2="${W - P.r}" y1="${y(v)}" y2="${y(v)}"/><text x="4" y="${y(v) + 4}">${Math.round(v)} zł</text>`; }
+    const step = Math.max(1, Math.ceil(pts.length / 6));
+    pts.forEach((p, i) => { if (i % step === 0 || i === pts.length - 1) g += `<text x="${x(i) - 26}" y="${H - 6}">${esc(p.day.slice(5))}</text>`; });
+    svg.innerHTML = g + `<path class="lineP" d="${line("price")}"/><path class="lineE" d="${line("effective")}"/>`
+      + pts.map((p, i) => p.effective == null ? "" : `<circle cx="${x(i)}" cy="${y(p.effective)}" r="3"><title>${esc(p.day)}: ${pln(p.effective)}</title></circle>`).join("");
+  }
+  $("hTable").innerHTML = `<tr><th>Dzień</th><th>Efektywna</th><th>W sklepie</th><th>Katalogowa</th></tr>` +
+    pts.slice().reverse().map(p => `<tr><td>${esc(p.day)}</td><td>${pln(p.effective)}</td><td>${pln(p.price)}</td><td>${pln(p.catalog_price)}</td></tr>`).join("");
+  $("hist").showModal();
+}
+
+async function init() {
+  META = await api("/api/meta");
+  for (const c of Object.keys(META.categories)) $("cat").insertAdjacentHTML("beforeend", `<option>${esc(c)}</option>`);
+  for (const s of META.shops) $("shop").insertAdjacentHTML("beforeend", `<option>${esc(s)}</option>`);
+  const saved = store.get();
+  setGender(saved.plec || META.gender);
+  for (const k of ["q", "cat", "shop", "max", "temp", "min_discount"]) if (saved[k] != null) $(k).value = saved[k];
+  fillSubs(); if (saved.sub) $("sub").value = saved.sub;
+  for (const k of ["per_sub", "in_stock", "all", "stale"]) $(k).checked = !!saved[k];
+
+  $("tabs").addEventListener("click", e => e.target.dataset.tab && setTab(e.target.dataset.tab));
+  $("plec").addEventListener("click", e => { if (e.target.dataset.v) { setGender(e.target.dataset.v); load(); } });
+  $("cat").addEventListener("change", () => { fillSubs(); load(); });
+  for (const k of ["sub", "shop", "per_sub", "in_stock", "all", "stale"]) $(k).addEventListener("change", load);
+  for (const k of ["max", "temp", "min_discount"]) $(k).addEventListener("input", schedule);
+  $("q").addEventListener("keydown", e => { if (e.key === "Enter") load(); });
+  $("q").addEventListener("input", schedule);
+  $("reset").addEventListener("click", () => {
+    for (const k of ["q", "max", "temp", "min_discount"]) $(k).value = "";
+    for (const k of ["cat", "sub", "shop"]) $(k).value = "";
+    for (const k of ["per_sub", "in_stock", "all", "stale"]) $(k).checked = false;
+    fillSubs(); setGender(META.gender); load();
+  });
+  setTab(saved.tab || "search");
+}
+init().catch(e => { $("summary").innerHTML = `<span class="err">Nie mogę połączyć się z web.py: ${esc(e.message)}</span>`; });
+</script>
+</body>
+</html>
