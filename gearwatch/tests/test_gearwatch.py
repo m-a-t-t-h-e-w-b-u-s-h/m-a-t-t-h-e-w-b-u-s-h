@@ -162,7 +162,7 @@ def test_name_beats_context_on_ties(cfg):
     ("Plecak Deuter Aircontact Core 45+10", "duze"),
     ("Plecak trekkingowy Mammut Trion 50 l", "duze"),
     ("Plecak Osprey Talon 22", "inne"),
-    ("Plecak damski Osprey Tempest 40", "inne"),
+    ("Plecak damski Osprey Tempest 40", "duze"),  # odfiltrowany płcią, nie klasyfikacją
     ("Plecak Black Diamond Speed", "inne"),  # pojemność nieznana
 ])
 def test_backpacks_by_capacity(cfg, name, expected):
@@ -361,3 +361,28 @@ def test_clothing_size_labels(cfg):
     assert size_ok(sub, ["S", "XL", "XXL"]) is False
     assert size_ok(sub, ["S/M"]) is True
     assert size_ok(sub, []) is None
+
+
+@pytest.mark.parametrize("name,ctx,specs,expected", [
+    ("Kurtka Arc'teryx Beta Jacket Men's", "", {}, "m"),
+    ("Kurtka damska Rab Kinetic", "", {}, "k"),
+    ("Bluza glacier fleece women-summit navy", "", {}, "k"),
+    ("Kurtka Patagonia W's Torrentshell", "", {}, "k"),
+    ("Spodnie Mammut Nordwand", "Odzież > Spodnie damskie", {}, "k"),
+    ("Spodnie Mammut Nordwand", "Odzież > Spodnie męskie", {}, "m"),
+    ("Kurtka Rab Downpour", "", {"Płeć": "Mężczyzna"}, "m"),
+    ("Kurtka Rab Downpour", "", {"Płeć": "Kobieta"}, "k"),
+    ("Kurtka dziecięca Reima", "", {}, "d"),
+    ("Plecak Osprey Talon 44", "", {}, "u"),
+    ("Kurtka X", "Menu > Damskie > Męskie > Dziecięce", {}, "u"),
+])
+def test_detect_gender(name, ctx, specs, expected):
+    from gw.params import detect_gender
+    assert detect_gender(name, ctx, specs) == expected
+
+
+def test_gender_filter_default_men(cfg):
+    from gw.query import gender_ok
+    assert gender_ok(cfg, {"plec": "m"}) and gender_ok(cfg, {"plec": "u"})
+    assert not gender_ok(cfg, {"plec": "k"}) and not gender_ok(cfg, {"plec": "d"})
+    assert gender_ok(cfg, {"plec": "k"}, "damskie")

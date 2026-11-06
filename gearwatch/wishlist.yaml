@@ -24,6 +24,9 @@
 # Kategoria bez `keywords` (np. pozostale) dopasowuje się przez swoje podkategorie.
 
 settings:
+  # Płeć produktów w wynikach, --deals i alertach: meskie (= męskie + unisex) | damskie | dzieciece | wszystkie.
+  # Jednorazowo nadpiszesz to w CLI: --plec damskie
+  gender: meskie
   # Gdzie szukać plików z bookmarkletu (gearwatch-*.json) i zapisanych stron (*.html)
   inbox:
     - ~/Downloads
@@ -159,7 +162,7 @@ categories:
         # Klasyfikacja po pojemności z nazwy/specyfikacji; bez pojemności -> plecaki/inne.
         keywords: []
         param_range: {pojemnosc_l: {min: 40}}
-        exclude: [damsk*, women*, womens, wmn, ws, lady, dzieci*, dzieciec*, kids, junior]
+        # płeć filtruje settings.gender (domyślnie męskie + unisex)
         brands: [Osprey]
         params: [pojemnosc_l, waga_g, rozmiar]
         alert_below: 600

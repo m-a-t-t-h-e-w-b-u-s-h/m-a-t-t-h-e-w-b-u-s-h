@@ -6,6 +6,7 @@ Przykłady:
   python find.py "karabinki/ekspresowe"
   python find.py "spiwory, -10" --shop 8a --max 1500
   python find.py "karabinki/hms"            # kubełek z wanted: false, bo podany jawnie
+  python find.py "kurtki" --plec damskie    # jednorazowo damskie (domyślnie męskie + unisex)
   python find.py --unknown                  # raport produktów bez jednoznacznej podkategorii
   python find.py "karabinki/inne" --short --limit 200   # jedna linia na produkt
   python find.py --unknown --short          # j.w. dla raportu unknown
@@ -37,7 +38,7 @@ def _utf8_stdout():
 def cmd_search(con, cfg, args):
     q = parse_query(args.query or "", cfg)
     results, unknown = search(con, cfg, q, shop=args.shop, max_price=args.max, in_stock=args.in_stock,
-                              include_unwanted=args.all, include_stale=args.stale)
+                              include_unwanted=args.all, include_stale=args.stale, gender=args.plec)
     multi = len({x["sub"].path for x in results}) > 1
     if args.short:
         for x in results[: args.limit]:
@@ -127,7 +128,8 @@ def cmd_categories(con, cfg, args):
 
 def cmd_deals(con, cfg, args):
     q = parse_query(args.query or "", cfg)
-    items = deals(con, cfg, q, shop=args.shop, min_discount=args.min_discount, include_stale=args.stale)
+    items = deals(con, cfg, q, shop=args.shop, min_discount=args.min_discount, include_stale=args.stale,
+                  gender=args.plec)
     if args.per_sub:  # najlepsza oferta w każdej podkategorii
         best = {}
         for d in items:
@@ -188,6 +190,8 @@ def main(argv=None):
     ap.add_argument("--shop", choices=None, help="skalnik | 8a")
     ap.add_argument("--max", type=float, help="maksymalna cena efektywna")
     ap.add_argument("--in-stock", action="store_true", help="tylko dostępne")
+    ap.add_argument("--plec", choices=["meskie", "damskie", "dzieciece", "wszystkie"],
+                    help="nadpisuje settings.gender z wishlist.yaml (domyślnie: meskie = męskie + unisex)")
     ap.add_argument("--all", action="store_true", help="pokaż też podkategorie z wanted: false")
     ap.add_argument("--stale", action="store_true", help="pokaż też ceny starsze niż stale_days")
     ap.add_argument("--limit", type=int, default=50)

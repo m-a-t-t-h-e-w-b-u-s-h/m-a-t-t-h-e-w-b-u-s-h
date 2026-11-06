@@ -72,6 +72,13 @@ python find.py --categories             # drzewo kategorii z liczbą produktów
 python find.py --history 42             # historia cen produktu #42
 ```
 
+**Płeć i rozmiar:** domyślnie wyniki, `--deals` i alerty pokazują tylko rzeczy
+męskie i unisex (`settings.gender: meskie` w `wishlist.yaml`), a odzież tylko
+w rozmiarach M/L (gdy rozmiary są znane ze strony produktu). Jednorazowo:
+`--plec damskie | dzieciece | wszystkie`. Płeć rozpoznaję ze specyfikacji
+(„Płeć: …”), nazwy („męska”, „women”, „W's”…) albo tytułu listingu
+(„Kurtki damskie”).
+
 Wynik jest posortowany od najtańszej ceny efektywnej. Dla każdego produktu
 widać: cenę efektywną (i aktualną, jeśli się różni), sklep, nazwę,
 parametry zależne od podkategorii i link.

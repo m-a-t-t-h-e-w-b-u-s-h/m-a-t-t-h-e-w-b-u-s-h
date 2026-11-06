@@ -8,7 +8,7 @@ import requests
 
 from . import db
 from .config import Config
-from .query import filters_ok, latest_rows, money, size_ok
+from .query import filters_ok, gender_ok, latest_rows, money, size_ok
 
 
 def pending(con, cfg: Config) -> list[dict]:
@@ -23,7 +23,7 @@ def pending(con, cfg: Config) -> list[dict]:
             continue
         params = db.loads(r["params"], {})
         sz = size_ok(sub, db.loads(r["sizes"], []))
-        if not filters_ok(sub, params) or sz is False:
+        if not filters_ok(sub, params) or sz is False or not gender_ok(cfg, params):
             continue
         last = con.execute("SELECT MIN(effective) AS m FROM alerts_sent WHERE product_id=?", (r["id"],)).fetchone()["m"]
         if last is not None and r["effective"] >= last - 0.01:

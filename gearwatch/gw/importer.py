@@ -13,7 +13,7 @@ from . import db
 from .classify import classify
 from .config import ROOT, Config
 from .extract import Record, extract
-from .params import extract_params
+from .params import detect_gender, extract_params
 from .pricing import effective_price
 
 ARCHIVE = ROOT / "data" / "archive"
@@ -134,6 +134,7 @@ def reclassify(con, cfg: Config) -> dict:
         specs = db.loads(row["specs"], {})
         sizes = db.loads(row["sizes"], [])
         params = extract_params(row["name"], row["description"] or "", specs, sizes)
+        params["plec"] = detect_gender(row["name"], row["context"] or "", specs)
         res = classify(cfg, row["name"], row["context"] or "", " ".join([row["description"] or "", *map(str, specs.values())]),
                        row["brand"] or "", params, row["shop"])
         debug = {"kategorie": res.category_scores, "podkategorie": res.sub_scores, "trafienia": res.hits}

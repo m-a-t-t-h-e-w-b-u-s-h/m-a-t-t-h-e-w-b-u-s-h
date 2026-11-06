@@ -149,3 +149,32 @@ def extract_params(name: str, description: str = "", specs: dict | None = None, 
     rz = re.search(r"rozmiar\w*[^0-9]{0,10}(\d+\s*[-–]\s*\d+)", full)
     p["rozmiary"] = ", ".join(sizes) if sizes else (rz.group(1) if rz else None)
     return {k: v for k, v in p.items() if v not in (None, "")}
+
+
+GENDER_WORDS = {
+    "k": [r"damsk\w*", r"women\w*", r"wmn", r"ws", r"lady", r"ladies", r"female", r"kobiet\w*", r"kobiec\w*"],
+    "m": [r"mesk\w*", r"men", r"mens", r"ms", r"male", r"mezczyz\w*"],
+    "d": [r"dzieci\w*", r"dzieciec\w*", r"kids?", r"junior\w*", r"jr", r"chlopiec\w*", r"dziewczyn\w*", r"youth"],
+}
+
+
+def _gender_in(text: str) -> set[str]:
+    return {g for g, pats in GENDER_WORDS.items()
+            if any(re.search(r"(?<![a-z0-9])" + p + r"(?![a-z0-9])", text) for p in pats)}
+
+
+def detect_gender(name: str, context: str = "", specs: dict | None = None) -> str:
+    """'m' męskie, 'k' damskie, 'd' dziecięce, 'u' unisex/nieokreślone.
+
+    Kolejność: specyfikacja (Płeć: …) -> nazwa -> kontekst listingu (gdy wskazuje jedną płeć).
+    """
+    spec = _spec(specs or {}, "plec", "gender", "przeznaczenie")
+    for text in (spec or "", normalize(name), normalize(context)):
+        if "unisex" in text:
+            return "u"
+        found = _gender_in(text)
+        if len(found) == 1:
+            return found.pop()
+        if found:  # np. "męskie i damskie" albo menu z kilkoma płciami
+            return "u"
+    return "u"

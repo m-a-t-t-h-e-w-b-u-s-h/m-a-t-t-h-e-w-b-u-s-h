@@ -113,6 +113,15 @@ def temp_ok(sub: Subcategory, params: dict, t: float | None) -> bool:
     return not (isinstance(comfort, (int, float)) and comfort > t)
 
 
+GENDERS = {"meskie": {"m", "u"}, "damskie": {"k", "u"}, "dzieciece": {"d"}, "wszystkie": {"m", "k", "d", "u"}}
+
+
+def gender_ok(cfg: Config, params: dict, gender: str | None = None) -> bool:
+    """Domyślnie settings.gender z wishlist.yaml (meskie = męskie + unisex)."""
+    allowed = GENDERS.get(gender or cfg.settings.get("gender", "meskie"), GENDERS["meskie"])
+    return params.get("plec", "u") in allowed
+
+
 def latest_rows(con, cfg: Config, include_stale: bool = False):
     stale_days = cfg.settings.get("stale_days", 30)
     since = "0000" if include_stale else (date.today() - timedelta(days=stale_days)).isoformat()
@@ -125,7 +134,7 @@ def latest_rows(con, cfg: Config, include_stale: bool = False):
 
 
 def search(con, cfg: Config, q: Query, *, shop=None, max_price=None, in_stock=False,
-           include_unwanted=False, include_stale=False):
+           include_unwanted=False, include_stale=False, gender=None):
     wanted_paths = {(c, s): explicit for c, s, explicit in q.selectors}
     results, unknown_count = [], 0
     for r in latest_rows(con, cfg, include_stale):
@@ -157,6 +166,8 @@ def search(con, cfg: Config, q: Query, *, shop=None, max_price=None, in_stock=Fa
         if in_stock and r["available"] == 0:
             continue
         if r["effective"] is None or (max_price and r["effective"] > max_price):
+            continue
+        if not gender_ok(cfg, params, gender):
             continue
         if not temp_ok(sub, params, q.temp) or not filters_ok(sub, params):
             continue
@@ -190,7 +201,7 @@ def format_params(sub: Subcategory, params: dict, size_unknown=False) -> str:
     return " · ".join(parts)
 
 
-def deals(con, cfg: Config, q: Query, *, shop=None, min_discount=0.0, include_stale=False):
+def deals(con, cfg: Config, q: Query, *, shop=None, min_discount=0.0, include_stale=False, gender=None):
     """Najlepsze oferty z wishlisty.
 
     rabat   = 1 - cena_efektywna / cena_katalogowa (katalogowa = przekreślona, a gdy jej brak – aktualna;
@@ -199,7 +210,7 @@ def deals(con, cfg: Config, q: Query, *, shop=None, min_discount=0.0, include_st
     promo   = promocja samego sklepu: 1 - cena_aktualna / cena_przekreślona (bez Twoich 30%)
     min     = cena efektywna jest najniższa w całej historii produktu
     """
-    found, _ = search(con, cfg, q, shop=shop, include_stale=include_stale)
+    found, _ = search(con, cfg, q, shop=shop, include_stale=include_stale, gender=gender)
     out = []
     for x in found:
         r = x["row"]
