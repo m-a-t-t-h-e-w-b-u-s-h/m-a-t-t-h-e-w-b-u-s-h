@@ -126,7 +126,7 @@ categories:
     group: czekan   # koszyk minimum: jedna sztuka z tej kategorii
     keywords: [czekan*, ice axe, ice tool*, dziab*]
     exclude: [oslon*, axe guard, ochraniacz*, smycz*, leash, pokrowiec*, kabur*, petl*, uchwyt*, kolce, grot*,
-              lopatk*, dziob*, glowic*, wymienn*, do czekana, do czekanow]
+              lopatk*, dziob*, glowic*, wymienn*, do czekana, do czekanow, ostrz*]
     fallback: inne
     subcategories:
       turystyczne:

@@ -685,6 +685,7 @@ def test_boots_context_alone_is_not_b2(cfg):
 
 def test_axe_spare_parts_dropped(cfg):
     assert classify(cfg, "Łopatka do czekana Grivel Adze Tech Machine").category is None
+    assert classify(cfg, "Ostrze czekana Black Diamond Hot Forged Alpine Pick").category is None
 
 
 def test_hide_removes_from_search_and_basket(con, cfg, tmp_path):

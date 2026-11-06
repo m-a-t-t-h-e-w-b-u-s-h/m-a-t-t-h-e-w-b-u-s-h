@@ -270,8 +270,12 @@ async function load() {
 
 let BASKET = null, HIDDEN_HTML = "";
 async function hide_(id) {
-  const r = await fetch("/api/hide?id=" + id, {method: "POST"});
-  if (r.ok) load(); else alert("Nie udało się ukryć #" + id);
+  let r;
+  try { r = await fetch("/api/hide?id=" + id, {method: "POST"}); } catch (e) { r = null; }
+  if (r && r.ok) return load();
+  if (!r || r.status === 501 || r.status === 404)
+    alert("Nie udało się ukryć #" + id + ": działa stara wersja web.py.\nZamknij okno strony (czarne okno) i uruchom ponownie start-strona.bat, potem Ctrl+F5.");
+  else alert("Nie udało się ukryć #" + id + " (błąd " + r.status + ")");
 }
 async function unhide_(id) {
   const r = await fetch("/api/unhide?id=" + id, {method: "POST"});
