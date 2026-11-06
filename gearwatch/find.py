@@ -7,6 +7,7 @@ Przykłady:
   python find.py "spiwory, -10" --shop 8a --max 1500
   python find.py "karabinki/hms"            # kubełek z wanted: false, bo podany jawnie
   python find.py --unknown                  # raport produktów bez jednoznacznej podkategorii
+  python find.py --unknown --short          # jedna linia na produkt
   python find.py --unknown --csv unknown.csv
   python find.py --history 42
   python find.py --categories               # lista kategorii/podkategorii
@@ -68,6 +69,12 @@ def cmd_unknown(con, cfg, args):
     if not rows:
         print("Brak produktów z subcategory: unknown 🎉")
         return
+    if args.short:
+        for r in rows:
+            reason = (r["class_reason"] or "").replace("brak dopasowania podkategorii", "brak")
+            print(f"#{r['id']:<5} {r['category'] or '-':<16} {reason[:28]:<28} {r['name'][:70]}")
+        print(f"Razem: {len(rows)}")
+        return
     current = None
     for r in rows:
         if r["category"] != current:
@@ -120,6 +127,7 @@ def main(argv=None):
     ap.add_argument("--limit", type=int, default=50)
     ap.add_argument("--unknown", action="store_true", help="raport subcategory: unknown")
     ap.add_argument("--csv", help="z --unknown: zapisz raport do CSV")
+    ap.add_argument("--short", action="store_true", help="z --unknown: jedna linia na produkt")
     ap.add_argument("--history", type=int, metavar="ID", help="historia cen produktu")
     ap.add_argument("--categories", action="store_true", help="lista kategorii z liczbą produktów")
     ap.add_argument("--wishlist", help="ścieżka do wishlist.yaml")
