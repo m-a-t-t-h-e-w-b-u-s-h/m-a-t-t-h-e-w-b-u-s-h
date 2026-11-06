@@ -12,6 +12,7 @@ Przykłady:
   python find.py --unknown --csv unknown.csv
   python find.py --history 42
   python find.py --categories               # lista kategorii/podkategorii
+  python find.py --coverage                 # co już zebrano (podkategorie × sklepy)
 """
 from __future__ import annotations
 
@@ -121,6 +122,35 @@ def cmd_categories(con, cfg, args):
             print(f"  {cn + '/unknown':<36} {counts[(cn, 'unknown')]:>4} prod.")
 
 
+def cmd_coverage(con, cfg, args):
+    """Które podkategorie mają już produkty z których sklepów – puste = strona do odwiedzenia."""
+    stats = {}
+    for r in con.execute(
+            """SELECT p.category, p.subcategory, p.shop, COUNT(*) AS n, MAX(pr.day) AS last
+               FROM products p LEFT JOIN prices pr ON pr.product_id = p.id
+               GROUP BY 1, 2, 3"""):
+        stats[(r["category"], r["subcategory"], r["shop"])] = (r["n"], r["last"])
+    shops = list(cfg.shops)
+    print(f"{'podkategoria':<34}" + "".join(f"{s:>22}" for s in shops))
+    missing = []
+    for cn, cat in cfg.categories.items():
+        for sn, sub in cat.subcategories.items():
+            if not sub.wanted:
+                continue
+            cells = []
+            for shop in shops:
+                if sub.shops and shop not in sub.shops:
+                    cells.append(f"{'n/d':>22}")
+                    continue
+                n, last = stats.get((cn, sn, shop), (0, None))
+                cells.append(f"{(f'{n} prod. ({last})' if n else '— brak'):>22}")
+                if not n:
+                    missing.append(f"{cn}/{sn} @ {shop}")
+            print(f"{cn + '/' + sn:<34}" + "".join(cells))
+    print(f"\nBrakuje {len(missing)} par podkategoria/sklep. „— brak” oznacza: tej strony jeszcze nie odwiedziłeś"
+          " albo sklep nie ma takich produktów (albo reguły ich nie łapią – wtedy pomoże --unknown).")
+
+
 def main(argv=None):
     _utf8_stdout()
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -136,6 +166,7 @@ def main(argv=None):
     ap.add_argument("--short", action="store_true", help="jedna linia na produkt (wyniki i --unknown)")
     ap.add_argument("--history", type=int, metavar="ID", help="historia cen produktu")
     ap.add_argument("--categories", action="store_true", help="lista kategorii z liczbą produktów")
+    ap.add_argument("--coverage", action="store_true", help="co już zebrano: podkategorie × sklepy")
     ap.add_argument("--wishlist", help="ścieżka do wishlist.yaml")
     ap.add_argument("--db", help="ścieżka do bazy SQLite")
     args = ap.parse_args(argv)
@@ -148,6 +179,8 @@ def main(argv=None):
         cmd_history(con, cfg, args)
     elif args.categories:
         cmd_categories(con, cfg, args)
+    elif args.coverage:
+        cmd_coverage(con, cfg, args)
     else:
         cmd_search(con, cfg, args)
 
