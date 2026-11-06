@@ -20,6 +20,7 @@ class Subcategory:
     brands: list[str] = field(default_factory=list)
     require_brand: bool = False
     require_name: bool = False
+    height_fit: str | None = None   # "spiwor" | "karimata" – dopasowanie do settings.height_cm
     params: list[str] = field(default_factory=list)
     wanted: bool = True
     season: str | None = None
@@ -105,6 +106,7 @@ def load(path: str | Path | None = None) -> Config:
                 brands=_strs(s.get("brands")),
                 require_brand=bool(s.get("require_brand")),
                 require_name=bool(s.get("require_name")),
+                height_fit=s.get("height_fit"),
                 params=s.get("params") or [],
                 wanted=s.get("wanted", True),
                 season=s.get("season"),

@@ -23,6 +23,8 @@ LABELS = {
     "liczba_zebow": ("zęby", str),
     "ksztalt_rekojesci": ("rękojeść", str),
     "sezon": ("sezon", str),
+    "membrana": ("membrana", str),
+    "warstwy": ("", str),
     "zakres_mm": ("zakres", str),
     "rozmiar": ("rozm.", str),
     "rozmiary": ("rozmiary", str),
@@ -96,6 +98,31 @@ def size_ok(sub: Subcategory, sizes: list[str]) -> bool | None:
     return any(lo - 1e-6 <= v <= hi + 1e-6 for v in vals)
 
 
+def height_ok(cfg: Config, sub: Subcategory, params: dict) -> tuple[bool | None, str]:
+    """Czy śpiwór/karimata pasuje na settings.height_cm. Zwraca (wynik, opis); None = nie wiadomo."""
+    if not sub.height_fit:
+        return True, ""
+    h = float(cfg.settings.get("height_cm", 0) or 0)
+    if not h:
+        return True, ""
+    if params.get("wzrost_max_cm"):
+        ok = params["wzrost_max_cm"] >= h
+        return ok, f"maks. wzrost {params['wzrost_max_cm']} cm"
+    if params.get("dlugosc_spec_cm"):
+        need = h + 20 if sub.height_fit == "spiwor" else h  # śpiwór: ok. 20 cm zapasu
+        ok = params["dlugosc_spec_cm"] >= need
+        return ok, f"długość {params['dlugosc_spec_cm']:g} cm"
+    classes = params.get("dlugosci") or []
+    if "long" in classes:
+        return True, "long"
+    if "regular" in classes:
+        # Regular zwykle pasuje do ok. 180–185 cm; przy wyższym wzroście – niepewne
+        return (True if h <= 180 else None), "regular (zwykle do 180–185 cm)"
+    if classes == ["short"]:
+        return False, "short"
+    return None, ""
+
+
 def filters_ok(sub: Subcategory, params: dict) -> bool:
     for pname, rng in (sub.filters or {}).items():
         v = params.get(pname)
@@ -133,8 +160,37 @@ def latest_rows(con, cfg: Config, include_stale: bool = False):
         (since,)).fetchall()
 
 
+def shell_ok(params: dict, membrana=None, warstwy=None, wodo_min=None, strict=False) -> tuple[bool, list[str]]:
+    """Filtry membrany / warstw / wodoodporności. Nieznana wartość: przepuszcza z '?' (chyba że strict)."""
+    unknown = []
+    if membrana:
+        v = params.get("membrana")
+        if v is None:
+            unknown.append("membrana ?")
+        elif membrana == "gore-tex" and not v.startswith("Gore-Tex"):
+            return False, []
+        elif membrana != "gore-tex" and v.lower() != membrana.lower():
+            return False, []
+    if warstwy:
+        v = params.get("warstwy")
+        if v is None:
+            unknown.append("warstwy ?")
+        elif v.replace(".", ",").upper() != warstwy.replace(".", ",").upper():
+            return False, []
+    if wodo_min:
+        v = params.get("wodoodpornosc_mm")
+        if v is None:
+            unknown.append("wodoodp. ?")
+        elif v < wodo_min:
+            return False, []
+    if strict and unknown:
+        return False, []
+    return True, unknown
+
+
 def search(con, cfg: Config, q: Query, *, shop=None, max_price=None, in_stock=False,
-           include_unwanted=False, include_stale=False, gender=None):
+           include_unwanted=False, include_stale=False, gender=None,
+           membrana=None, warstwy=None, wodo_min=None, strict=False):
     wanted_paths = {(c, s): explicit for c, s, explicit in q.selectors}
     results, unknown_count = [], 0
     for r in latest_rows(con, cfg, include_stale):
@@ -174,7 +230,16 @@ def search(con, cfg: Config, q: Query, *, shop=None, max_price=None, in_stock=Fa
         sz = size_ok(sub, db.loads(r["sizes"], []))
         if sz is False:
             continue
-        results.append({"row": r, "sub": sub, "params": params, "size_unknown": sz is None})
+        hf, hnote = height_ok(cfg, sub, params)
+        if hf is False:
+            continue
+        shok, shunk = shell_ok(params, membrana, warstwy, wodo_min, strict)
+        if not shok:
+            continue
+        results.append({"row": r, "sub": sub, "params": params, "size_unknown": sz is None,
+                        "height_note": (f"{'✓' if hf else '?'} {int(cfg.settings.get('height_cm', 0))} cm"
+                                        + (f": {hnote}" if hnote else ": długość nieznana")) if sub.height_fit else "",
+                        "unknown_notes": shunk})
     results.sort(key=lambda x: x["row"]["effective"])
     return results, unknown_count
 
@@ -185,23 +250,26 @@ def money(v: float | None) -> str:
     return f"{v:,.2f}".replace(",", " ").replace(".", ",") + " zł"
 
 
-def format_params(sub: Subcategory, params: dict, size_unknown=False) -> str:
+def format_params(sub: Subcategory, params: dict, size_unknown=False, height_note: str = "", unknown_notes=()) -> str:
     parts = []
     for p in sub.params:
         if p in params:
             label, fmt = LABELS.get(p, (p, str))
             try:
-                parts.append(f"{label} {fmt(params[p])}")
+                parts.append(f"{label} {fmt(params[p])}".strip())
             except (TypeError, ValueError):
                 parts.append(f"{label} {params[p]}")
     if sub.season and "sezon" not in params:
         parts.append(f"sezon {sub.season}")
+    if height_note:
+        parts.append(height_note)
+    parts += [n for n in unknown_notes or [] if n.split()[0] not in " ".join(parts)]
     if size_unknown:
         parts.append("rozmiar ? (brak wariantów – otwórz stronę produktu)")
     return " · ".join(parts)
 
 
-def deals(con, cfg: Config, q: Query, *, shop=None, min_discount=0.0, include_stale=False, gender=None):
+def deals(con, cfg: Config, q: Query, *, shop=None, min_discount=0.0, include_stale=False, gender=None, **filters):
     """Najlepsze oferty z wishlisty.
 
     rabat   = 1 - cena_efektywna / cena_katalogowa (katalogowa = przekreślona, a gdy jej brak – aktualna;
@@ -210,7 +278,7 @@ def deals(con, cfg: Config, q: Query, *, shop=None, min_discount=0.0, include_st
     promo   = promocja samego sklepu: 1 - cena_aktualna / cena_przekreślona (bez Twoich 30%)
     min     = cena efektywna jest najniższa w całej historii produktu
     """
-    found, _ = search(con, cfg, q, shop=shop, include_stale=include_stale, gender=gender)
+    found, _ = search(con, cfg, q, shop=shop, include_stale=include_stale, gender=gender, **filters)
     out = []
     for x in found:
         r = x["row"]

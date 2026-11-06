@@ -13,7 +13,7 @@ from . import db
 from .classify import classify
 from .config import ROOT, Config
 from .extract import Record, extract
-from .params import detect_gender, extract_params
+from .params import body_fit_params, detect_gender, extract_params, layers, membrane
 from .pricing import effective_price
 
 ARCHIVE = ROOT / "data" / "archive"
@@ -138,6 +138,13 @@ def reclassify(con, cfg: Config) -> dict:
         sizes = db.loads(row["sizes"], [])
         params = extract_params(row["name"], row["description"] or "", specs, sizes)
         params["plec"] = detect_gender(row["name"], row["context"] or "", specs)
+        params.update(body_fit_params(row["name"], row["description"] or "", specs, sizes))
+        mem = membrane(row["name"], row["description"] or "", specs)
+        if mem:
+            params["membrana"] = mem
+        lay = layers(row["name"], row["description"] or "", specs, mem)
+        if lay:
+            params["warstwy"] = lay
         res = classify(cfg, row["name"], row["context"] or "", " ".join([row["description"] or "", *map(str, specs.values())]),
                        row["brand"] or "", params, row["shop"])
         debug = {"kategorie": res.category_scores, "podkategorie": res.sub_scores, "trafienia": res.hits}

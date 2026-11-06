@@ -79,6 +79,18 @@ w rozmiarach M/L (gdy rozmiary są znane ze strony produktu). Jednorazowo:
 („Płeć: …”), nazwy („męska”, „women”, „W's”…) albo tytułu listingu
 („Kurtki damskie”).
 
+**Wzrost:** `settings.height_cm: 180` – śpiwory i karimaty za krótkie (Short,
+maks. wzrost < 180 cm, śpiwór krótszy niż 200 cm) są ukrywane; Long/Regular
+przechodzą, nieznana długość dostaje dopisek „?”.
+
+**Membrana i warstwy** (kurtki i spodnie hardshell): parametr `membrana`
+(Gore-Tex Pro / Paclite / Active / ePE / Gore-Tex, eVent, Futurelight, H2No,
+DryVent, Pertex Shield, własna/inna) i `warstwy` (2L / 2,5L / 3L) z nazwy
+i specyfikacji. Filtry: `--membrana gore-tex` (dowolny Gore-Tex) albo
+konkretna, `--warstwy 3L`, `--wodo-min 20000`; na stronie – listy „Membrana”,
+„Warstwy” i pole „Wodoodporność min” po wybraniu kurtek/spodni. Produkty bez
+znanej wartości zostają z „?”, chyba że zaznaczysz „ukryj nieznane”.
+
 Wynik jest posortowany od najtańszej ceny efektywnej. Dla każdego produktu
 widać: cenę efektywną (i aktualną, jeśli się różni), sklep, nazwę,
 parametry zależne od podkategorii i link.

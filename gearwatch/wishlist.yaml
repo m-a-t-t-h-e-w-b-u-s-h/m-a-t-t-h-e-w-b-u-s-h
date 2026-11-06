@@ -14,6 +14,7 @@
 #   params        – parametry wypisywane w CLI
 #   wanted        – false: kubełek klasyfikacyjny, ukryty w wynikach, chyba że zapytasz o niego wprost
 #   season, temp  – na stałe przypisany sezon i zakres temperatur [min, max] °C
+#   height_fit    – spiwor | karimata: dopasowanie długości do settings.height_cm
 #   size          – rozmiar sprawdzany na dostępnych wariantach: {min, max} (EU, buty)
 #                   albo {labels: [M, L]} (odzież)
 #   filters       – filtry liczbowe na parametrach, np. {pojemnosc_l: {min: 33}}
@@ -28,6 +29,8 @@ settings:
   # Płeć produktów w wynikach, --deals i alertach: meskie (= męskie + unisex) | damskie | dzieciece | wszystkie.
   # Jednorazowo nadpiszesz to w CLI: --plec damskie
   gender: meskie
+  # Wzrost: śpiwory/karimaty za krótkie (Short, maks. wzrost < 180 cm) są ukrywane i nie wysyłają alertów
+  height_cm: 180
   # Gdzie szukać plików z bookmarkletu (gearwatch-*.json) i zapisanych stron (*.html)
   inbox:
     - ~/Downloads
@@ -207,7 +210,7 @@ categories:
         season: całoroczna
         temp: [-20, 15]
         size: {labels: [M, L]}
-        params: [waga_g, wodoodpornosc_mm, sezon]
+        params: [waga_g, membrana, warstwy, wodoodpornosc_mm, sezon]
         alert_below: 900
       softshell:
         keywords: [softshell*, soft shell, windstopper*, schoeller*]
@@ -216,7 +219,7 @@ categories:
         season: wiosna–jesień
         temp: [-10, 15]
         size: {labels: [M, L]}
-        params: [waga_g, wodoodpornosc_mm, sezon]
+        params: [waga_g, membrana, warstwy, wodoodpornosc_mm, sezon]
         alert_below: 500
       inne:
         keywords: []
@@ -233,7 +236,7 @@ categories:
         exclude: [softshell*, soft shell]
         temp: [-20, 15]
         size: {labels: [M, L]}
-        params: [waga_g, wodoodpornosc_mm]
+        params: [waga_g, membrana, warstwy, wodoodpornosc_mm]
         alert_below: 700
       softshell:
         keywords: [softshell*, soft shell, windstopper*, schoeller*]
@@ -241,7 +244,7 @@ categories:
         exclude: [hardshell*, hard shell]
         temp: [-10, 15]
         size: {labels: [M, L]}
-        params: [waga_g, wodoodpornosc_mm]
+        params: [waga_g, membrana, warstwy, wodoodpornosc_mm]
       inne:
         keywords: []
         params: [waga_g]
@@ -293,17 +296,20 @@ categories:
     fallback: inne
     subcategories:
       letnie:
+        height_fit: spiwor
         keywords: [letni*, summer, ultralight]
         param_range: {temp_komfortu_c: {min: 5}}
         temp: [5, 30]
         params: [waga_g, temp_komfortu_c]
         wanted: false
       trzysezonowe:
+        height_fit: spiwor
         keywords: [3-sezon*, trzysezon*, 3-season]
         param_range: {temp_komfortu_c: {min: -4.9, max: 4.9}}
         temp: [-5, 10]
         params: [waga_g, temp_komfortu_c]
       zimowe:
+        height_fit: spiwor
         keywords: [zimow*, ekspedyc*, winter, wyprawow*]
         param_range: {temp_komfortu_c: {max: -5}}
         temp: [-40, -5]
@@ -311,6 +317,7 @@ categories:
         alert_below: 1500
       inne:
         # temperatura nieznana (brak w nazwie) – widoczny; sezon ustali strona produktu
+        height_fit: spiwor
         keywords: []
         params: [waga_g, temp_komfortu_c]
 
@@ -320,21 +327,25 @@ categories:
     fallback: inne
     subcategories:
       letnie:
+        height_fit: karimata
         param_range: {r_value: {max: 1.99}}
         keywords: [letni*, summer]
         params: [waga_g, r_value]
         wanted: false
       trzysezonowe:
+        height_fit: karimata
         param_range: {r_value: {min: 2, max: 3.99}}
         keywords: [3-sezon*, trzysezon*]
         params: [waga_g, r_value]
       zimowe:
+        height_fit: karimata
         param_range: {r_value: {min: 4}}
         keywords: [zimow*, winter, xtherm]
         params: [waga_g, r_value]
         alert_below: 700
       inne:
         # R-value nieznane – widoczny; R ustali strona produktu
+        height_fit: karimata
         keywords: []
         params: [waga_g, r_value]
 

@@ -7,6 +7,7 @@ Przykłady:
   python find.py "spiwory, -10" --shop 8a --max 1500
   python find.py "karabinki/hms"            # kubełek z wanted: false, bo podany jawnie
   python find.py "kurtki" --plec damskie    # jednorazowo damskie (domyślnie męskie + unisex)
+  python find.py "hardshell" --membrana gore-tex --warstwy 3L --wodo-min 20000
   python find.py --unknown                  # raport produktów bez jednoznacznej podkategorii
   python find.py "karabinki/inne" --short --limit 200   # jedna linia na produkt
   python find.py --unknown --short          # j.w. dla raportu unknown
@@ -38,7 +39,8 @@ def _utf8_stdout():
 def cmd_search(con, cfg, args):
     q = parse_query(args.query or "", cfg)
     results, unknown = search(con, cfg, q, shop=args.shop, max_price=args.max, in_stock=args.in_stock,
-                              include_unwanted=args.all, include_stale=args.stale, gender=args.plec)
+                              include_unwanted=args.all, include_stale=args.stale, gender=args.plec,
+                              membrana=args.membrana, warstwy=args.warstwy, wodo_min=args.wodo_min)
     multi = len({x["sub"].path for x in results}) > 1
     if args.short:
         for x in results[: args.limit]:
@@ -51,7 +53,7 @@ def cmd_search(con, cfg, args):
         extra = f" (cena {money(r['price'])})" if r["price"] != r["effective"] else ""
         cat = f"  [{sub.path}]" if multi else ""
         print(f"{price:>13}  {r['shop']:<8} {r['name']}{cat}{extra}")
-        info = format_params(sub, x["params"], x["size_unknown"])
+        info = format_params(sub, x["params"], x["size_unknown"], x.get("height_note", ""), x.get("unknown_notes"))
         if info:
             print(f"{'':>13}  {'':<8} {info}")
         print(f"{'':>13}  {'':<8} {r['url']}   #{r['id']} · {r['day']}")
@@ -129,7 +131,7 @@ def cmd_categories(con, cfg, args):
 def cmd_deals(con, cfg, args):
     q = parse_query(args.query or "", cfg)
     items = deals(con, cfg, q, shop=args.shop, min_discount=args.min_discount, include_stale=args.stale,
-                  gender=args.plec)
+                  gender=args.plec, membrana=args.membrana, warstwy=args.warstwy, wodo_min=args.wodo_min)
     if args.per_sub:  # najlepsza oferta w każdej podkategorii
         best = {}
         for d in items:
@@ -194,6 +196,9 @@ def main(argv=None):
                     help="nadpisuje settings.gender z wishlist.yaml (domyślnie: meskie = męskie + unisex)")
     ap.add_argument("--all", action="store_true", help="pokaż też podkategorie z wanted: false")
     ap.add_argument("--stale", action="store_true", help="pokaż też ceny starsze niż stale_days")
+    ap.add_argument("--membrana", help='np. "gore-tex" (dowolny Gore-Tex), "Gore-Tex Pro", "Futurelight", "własna/inna"')
+    ap.add_argument("--warstwy", choices=["2L", "2,5L", "3L"])
+    ap.add_argument("--wodo-min", type=float, metavar="MM", help="minimalna wodoodporność (mm słupa wody)")
     ap.add_argument("--limit", type=int, default=50)
     ap.add_argument("--unknown", action="store_true", help="raport subcategory: unknown")
     ap.add_argument("--csv", help="z --unknown: zapisz raport do CSV")

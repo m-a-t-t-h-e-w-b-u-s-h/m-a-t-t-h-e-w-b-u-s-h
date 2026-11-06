@@ -463,3 +463,48 @@ def test_webapi(con, cfg, tmp_path):
     assert webapi.api_history(con, cfg, {"id": pid})["points"]
     with pytest.raises(ValueError):
         webapi.build_query(cfg, {"cat": "nie-ma"})
+
+
+
+@pytest.mark.parametrize("name,specs,mem,lay", [
+    ("Kurtka Arc'teryx Beta AR Jacket Gore-Tex Pro", {}, "Gore-Tex Pro", "3L"),
+    ("Kurtka Mammut Nordwand GTX", {}, "Gore-Tex", None),
+    ("Kurtka Marmot PreCip Paclite", {}, "Gore-Tex Paclite", "2,5L"),
+    ("Kurtka The North Face Summit Futurelight", {}, "Futurelight", None),
+    ("Kurtka Patagonia Torrentshell 3L", {}, "własna/inna", "3L"),
+    ("Kurtka Rab Downpour", {"Membrana": "Pertex Shield 2.5L"}, "Pertex Shield", "2,5L"),
+    ("Kurtka TNF Quest DryVent", {}, "DryVent", None),
+    ("Kurtka X", {"Materiał": "eVent DVstorm, trzywarstwowy"}, "eVent", "3L"),
+    ("Kurtka fineline stretch", {}, None, None),
+])
+def test_membrane_and_layers(name, specs, mem, lay):
+    from gw.params import layers, membrane
+    m = membrane(name, "", specs)
+    assert m == mem and layers(name, "", specs, m) == lay
+
+
+def test_shell_filters():
+    from gw.query import shell_ok
+    gtx3 = {"membrana": "Gore-Tex Pro", "warstwy": "3L", "wodoodpornosc_mm": 28000}
+    assert shell_ok(gtx3, "gore-tex", "3L", 20000) == (True, [])
+    assert shell_ok({"membrana": "Futurelight"}, "gore-tex")[0] is False
+    assert shell_ok({}, "gore-tex") == (True, ["membrana ?"])
+    assert shell_ok({}, "gore-tex", strict=True)[0] is False
+    assert shell_ok({"wodoodpornosc_mm": 10000}, wodo_min=20000)[0] is False
+
+
+@pytest.mark.parametrize("name,specs,sizes,expected", [
+    ("Śpiwór radical 4z long-red-red", {}, [], True),
+    ("Śpiwór radical 4z regular-red-red", {}, [], True),
+    ("Śpiwór x", {"Maksymalny wzrost": "175 cm"}, [], False),
+    ("Śpiwór y", {"Długość": "215 x 80 cm"}, [], True),
+    ("Śpiwór y", {"Długość": "190 cm"}, [], False),
+    ("Śpiwór z", {}, ["Regular", "Long"], True),
+    ("Śpiwór dusk light-gray", {}, [], None),
+    ("Materac neoair xlite nxt regular short-solar flare", {}, [], False),
+])
+def test_height_fit_180(cfg, name, specs, sizes, expected):
+    from gw.params import body_fit_params
+    from gw.query import height_ok
+    sub = cfg.subcategory("karimaty/inne" if name.startswith("Materac") else "spiwory/zimowe")
+    assert height_ok(cfg, sub, body_fit_params(name, "", specs, sizes))[0] is expected

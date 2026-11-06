@@ -43,8 +43,8 @@ input[type=text], input[type=number], select {
 input[type=text] { width: 240px; }
 input[type=number] { width: 92px; }
 label.chk { display: inline-flex; gap: 6px; align-items: center; font-size: 14px; cursor: pointer; padding-bottom: 6px; }
-.only-deals { display: none; }
-body.tab-deals .only-deals { display: flex; }
+body:not(.tab-deals) .only-deals { display: none !important; }
+body:not(.show-shell) .shellf { display: none !important; }
 body.tab-unknown .filters, body.tab-coverage .filters { display: none; }
 main { padding: 14px 0 40px; }
 .summary { color: var(--muted); margin: 0 0 10px; font-size: 14px; }
@@ -120,6 +120,12 @@ dialog::backdrop { background: rgba(0,0,0,.4); }
         </div></div>
       <label class="f"><span>Cena max (zł)</span><input type="number" id="max" min="0" step="10"></label>
       <label class="f"><span>Temperatura (°C)</span><input type="number" id="temp" step="1"></label>
+      <label class="f shellf"><span>Membrana</span><select id="membrana"><option value="">dowolna</option>
+        <option value="gore-tex">Gore-Tex (każdy)</option></select></label>
+      <label class="f shellf"><span>Warstwy</span><select id="warstwy"><option value="">dowolne</option>
+        <option>2L</option><option>2,5L</option><option>3L</option></select></label>
+      <label class="f shellf"><span>Wodoodporność min (mm)</span><input type="number" id="wodo_min" min="0" step="5000"></label>
+      <label class="chk shellf"><input type="checkbox" id="strict"> ukryj nieznane („?”)</label>
       <label class="f only-deals"><span>Rabat min (%)</span><input type="number" id="min_discount" min="0" max="95" step="5"></label>
       <label class="chk only-deals"><input type="checkbox" id="per_sub"> najlepsza w każdej podkategorii</label>
       <label class="chk"><input type="checkbox" id="in_stock"> tylko dostępne</label>
@@ -157,6 +163,7 @@ const store = {
 function state() {
   return { tab: TAB, q: $("q").value, cat: $("cat").value, sub: $("sub").value, shop: $("shop").value,
            plec: GENDER, max: $("max").value, temp: $("temp").value, min_discount: $("min_discount").value,
+           membrana: $("membrana").value, warstwy: $("warstwy").value, wodo_min: $("wodo_min").value, strict: $("strict").checked,
            per_sub: $("per_sub").checked, in_stock: $("in_stock").checked, all: $("all").checked, stale: $("stale").checked };
 }
 
@@ -168,9 +175,16 @@ function fillSubs() {
   sel.value = [...sel.options].some(o => o.value === keep) ? keep : "";
 }
 
+function shellVisible() {
+  const show = ["kurtki", "spodnie"].includes($("cat").value) || /shell|gore|gtx|kurt|spodn|membran/i.test($("q").value)
+               || $("membrana").value || $("warstwy").value || $("wodo_min").value;
+  document.body.classList.toggle("show-shell", !!show);
+}
+
 function setTab(t) {
   TAB = t;
   document.body.className = "tab-" + t;
+  shellVisible();
   for (const b of $("tabs").children) b.classList.toggle("on", b.dataset.tab === t);
   load();
 }
@@ -196,8 +210,11 @@ async function load() {
   sum.textContent = "Ładowanie…";
   try {
     if (TAB === "search" || TAB === "deals") {
+      shellVisible();
+      const shell = document.body.classList.contains("show-shell");
       const params = {q: st.q, cat: st.cat, sub: st.sub, shop: st.shop, plec: st.plec, max: st.max, temp: st.temp,
-                      in_stock: st.in_stock, all: st.all, stale: st.stale};
+                      in_stock: st.in_stock, all: st.all, stale: st.stale,
+                      ...(shell ? {membrana: st.membrana, warstwy: st.warstwy, wodo_min: st.wodo_min, strict: st.strict} : {})};
       if (TAB === "deals") Object.assign(params, {min_discount: st.min_discount, per_sub: st.per_sub});
       const d = await api(TAB === "deals" ? "/api/deals" : "/api/search", params);
       sum.textContent = `${d.total} produktów` + (d.items.length < d.total ? ` (pokazuję ${d.items.length})` : "")
@@ -279,23 +296,24 @@ async function init() {
   META = await api("/api/meta");
   for (const c of Object.keys(META.categories)) $("cat").insertAdjacentHTML("beforeend", `<option>${esc(c)}</option>`);
   for (const s of META.shops) $("shop").insertAdjacentHTML("beforeend", `<option>${esc(s)}</option>`);
+  for (const m of META.membranes || []) $("membrana").insertAdjacentHTML("beforeend", `<option>${esc(m)}</option>`);
   const saved = store.get();
   setGender(saved.plec || META.gender);
-  for (const k of ["q", "cat", "shop", "max", "temp", "min_discount"]) if (saved[k] != null) $(k).value = saved[k];
+  for (const k of ["q", "cat", "shop", "max", "temp", "min_discount", "membrana", "warstwy", "wodo_min"]) if (saved[k] != null) $(k).value = saved[k];
   fillSubs(); if (saved.sub) $("sub").value = saved.sub;
-  for (const k of ["per_sub", "in_stock", "all", "stale"]) $(k).checked = !!saved[k];
+  for (const k of ["per_sub", "in_stock", "all", "stale", "strict"]) $(k).checked = !!saved[k];
 
   $("tabs").addEventListener("click", e => e.target.dataset.tab && setTab(e.target.dataset.tab));
   $("plec").addEventListener("click", e => { if (e.target.dataset.v) { setGender(e.target.dataset.v); load(); } });
   $("cat").addEventListener("change", () => { fillSubs(); load(); });
-  for (const k of ["sub", "shop", "per_sub", "in_stock", "all", "stale"]) $(k).addEventListener("change", load);
-  for (const k of ["max", "temp", "min_discount"]) $(k).addEventListener("input", schedule);
+  for (const k of ["sub", "shop", "per_sub", "in_stock", "all", "stale", "membrana", "warstwy", "strict"]) $(k).addEventListener("change", load);
+  for (const k of ["max", "temp", "min_discount", "wodo_min"]) $(k).addEventListener("input", schedule);
   $("q").addEventListener("keydown", e => { if (e.key === "Enter") load(); });
   $("q").addEventListener("input", schedule);
   $("reset").addEventListener("click", () => {
-    for (const k of ["q", "max", "temp", "min_discount"]) $(k).value = "";
-    for (const k of ["cat", "sub", "shop"]) $(k).value = "";
-    for (const k of ["per_sub", "in_stock", "all", "stale"]) $(k).checked = false;
+    for (const k of ["q", "max", "temp", "min_discount", "wodo_min"]) $(k).value = "";
+    for (const k of ["cat", "sub", "shop", "membrana", "warstwy"]) $(k).value = "";
+    for (const k of ["per_sub", "in_stock", "all", "stale", "strict"]) $(k).checked = false;
     fillSubs(); setGender(META.gender); load();
   });
   setTab(saved.tab || "search");

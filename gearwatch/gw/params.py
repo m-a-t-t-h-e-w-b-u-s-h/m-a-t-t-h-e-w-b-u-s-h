@@ -183,3 +183,88 @@ def detect_gender(name: str, context: str = "", specs: dict | None = None) -> st
         if found:  # np. "męskie i damskie" albo menu z kilkoma płciami
             return "u"
     return "u"
+
+
+LENGTH_CLASSES = {
+    "long": ["long", "xl", "large", "lg", "l", "dlugi", "dluga", "wide long", "xlong"],
+    "regular": ["regular", "reg", "standard", "std", "medium", "m"],
+    "short": ["short", "small", "s", "krotki", "krotka", "kids", "junior"],
+}
+
+
+def length_class(text: str) -> str | None:
+    """'long' / 'regular' / 'short' z nazwy lub etykiety wariantu (śpiwory, karimaty)."""
+    t = normalize(text)
+    for cls in ("long", "short", "regular"):  # long przed regular: "regular wide long"
+        for w in LENGTH_CLASSES[cls]:
+            if re.search(r"(?<![a-z0-9])" + re.escape(w) + r"(?![a-z0-9])", t):
+                return cls
+    return None
+
+
+def body_fit_params(name: str, description: str = "", specs: dict | None = None, sizes=None) -> dict:
+    specs = specs or {}
+    full = normalize(" ; ".join([name, description, *[f"{k}: {v}" for k, v in specs.items()]]))
+    out = {}
+    m = re.search(r"(?:wzrost\w*|dla osob\w*|height)[^0-9;]{0,30}?(?:do\s*|max\.?\s*)?(1\d{2}|2[0-2]\d)\s*cm", full) \
+        or re.search(r"(?:do|max\.?)\s*(1\d{2}|2[0-2]\d)\s*cm\s*wzrost", full)
+    if m:
+        out["wzrost_max_cm"] = int(m.group(1))
+    dl = _spec(specs, "dlugosc", "length")
+    if dl:
+        vals = [_f(v) for v in re.findall(r"(\d{2,3}(?:[.,]\d)?)\s*(?:x\s*\d{2,3}(?:[.,]\d)?\s*)*cm", dl)]
+        vals = [v for v in vals if 100 <= v <= 260]
+        if vals:
+            out["dlugosc_spec_cm"] = max(vals)
+    classes = [c for c in (length_class(x) for x in (sizes or [])) if c]
+    if classes:
+        out["dlugosci"] = sorted(set(classes))
+    else:
+        c = length_class(name)
+        if c:
+            out["dlugosci"] = [c]
+    return out
+
+
+# (etykieta, wzorce) – kolejność ma znaczenie: od najbardziej szczegółowej
+MEMBRANES = [
+    ("Gore-Tex Pro", [r"gore[\s\-]?tex\s+pro", r"gtx\s+pro", r"goretex\s+pro"]),
+    ("Gore-Tex Paclite", [r"paclite"]),
+    ("Gore-Tex Active", [r"gore[\s\-]?tex\s+active", r"gtx\s+active", r"shakedry"]),
+    ("Gore-Tex ePE", [r"gore[\s\-]?tex\s+epe", r"\bepe\b"]),
+    ("Gore-Tex", [r"gore[\s\-]?tex", r"goretex", r"(?<![a-z0-9])gtx(?![a-z0-9])"]),
+    ("eVent", [r"(?<![a-z0-9])event\s+(?:dv|dvl|dvstretch|dvexpedition|dvstorm)", r"membran\w*\s+event"]),
+    ("Futurelight", [r"futurelight"]),
+    ("H2No", [r"h2no"]),
+    ("DryVent", [r"dryvent"]),
+    ("Pertex Shield", [r"pertex\s+shield"]),
+]
+OWN_MEMBRANE = [r"membran\w*", r"ascentshell", r"neoshell", r"aquafoil", r"hydroshell", r"dermizax", r"omni[\s\-]?tech",
+                r"hyvent", r"dry\.?q", r"proshell", r"storm[\s\-]?shell", r"nieprzemakal\w*", r"(?<![a-z0-9])(?:2[.,]5|3)\s?l\b"]
+
+
+def membrane(name: str, description: str = "", specs: dict | None = None) -> str | None:
+    """Membrana z nazwy/specyfikacji (opis tylko dla jednoznacznych nazw własnych)."""
+    head = normalize(name + " ; " + " ; ".join(f"{k}: {v}" for k, v in (specs or {}).items()))
+    desc = normalize(description)
+    for label, pats in MEMBRANES:
+        for p in pats:
+            if re.search(p, head) or (label not in ("eVent", "Gore-Tex ePE") and re.search(p, desc)):
+                return label
+    if any(re.search(p, head) for p in OWN_MEMBRANE):
+        return "własna/inna"
+    return None
+
+
+def layers(name: str, description: str = "", specs: dict | None = None, membrane_label: str | None = None) -> str | None:
+    text = normalize(" ; ".join([name, *[f"{k}: {v}" for k, v in (specs or {}).items()], description]))
+    m = re.search(r"(?<![a-z0-9.,])(2[.,]5|2|3)\s?-?\s?(?:l|warstw\w*|layer\w*)(?![a-z0-9])", text)
+    if m:
+        return m.group(1).replace(".", ",") + "L"
+    if re.search(r"trzywarstw|three[\s\-]layer", text):
+        return "3L"
+    if re.search(r"dwuipol|2\s?1/2", text):
+        return "2,5L"
+    if re.search(r"dwuwarstw|two[\s\-]layer", text):
+        return "2L"
+    return {"Gore-Tex Pro": "3L", "Gore-Tex Active": "3L", "Gore-Tex Paclite": "2,5L"}.get(membrane_label)

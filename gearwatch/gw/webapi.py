@@ -42,7 +42,8 @@ def _item(x: dict) -> dict:
         "id": r["id"], "name": r["name"], "shop": r["shop"], "url": r["url"], "image": r["image"],
         "effective": r["effective"], "price": r["price"], "catalog": r["catalog_price"], "day": r["day"],
         "available": r["available"], "path": sub.path, "wanted": sub.wanted,
-        "params": format_params(sub, x["params"], x.get("size_unknown")),
+        "params": format_params(sub, x["params"], x.get("size_unknown"), x.get("height_note", ""),
+                                x.get("unknown_notes")),
         "plec": x["params"].get("plec", "u"),
         "alert_below": sub.alert_below,
         **{k: x[k] for k in ("discount", "promo", "drop", "lowest", "below_alert") if k in x},
@@ -55,7 +56,14 @@ def meta(cfg: Config) -> dict:
                        for cn, c in cfg.categories.items()},
         "shops": list(cfg.shops),
         "gender": cfg.settings.get("gender", "meskie"),
+        "membranes": ["Gore-Tex Pro", "Gore-Tex Paclite", "Gore-Tex Active", "Gore-Tex ePE", "Gore-Tex", "eVent",
+                      "Futurelight", "H2No", "DryVent", "Pertex Shield", "własna/inna"],
     }
+
+
+def _shell_filters(args: dict) -> dict:
+    return {"membrana": args.get("membrana") or None, "warstwy": args.get("warstwy") or None,
+            "wodo_min": _f(args.get("wodo_min")), "strict": _b(args.get("strict"))}
 
 
 def api_search(con, cfg: Config, args: dict) -> dict:
@@ -63,7 +71,7 @@ def api_search(con, cfg: Config, args: dict) -> dict:
     results, unknown = search(
         con, cfg, q, shop=args.get("shop") or None, max_price=_f(args.get("max")),
         in_stock=_b(args.get("in_stock")), include_unwanted=_b(args.get("all")),
-        include_stale=_b(args.get("stale")), gender=args.get("plec") or None)
+        include_stale=_b(args.get("stale")), gender=args.get("plec") or None, **_shell_filters(args))
     limit = int(_f(args.get("limit")) or 300)
     return {"items": [_item(x) for x in results[:limit]], "total": len(results), "unknown": unknown}
 
@@ -71,7 +79,7 @@ def api_search(con, cfg: Config, args: dict) -> dict:
 def api_deals(con, cfg: Config, args: dict) -> dict:
     q = build_query(cfg, args)
     items = deals(con, cfg, q, shop=args.get("shop") or None, min_discount=_f(args.get("min_discount")) or 0,
-                  include_stale=_b(args.get("stale")), gender=args.get("plec") or None)
+                  include_stale=_b(args.get("stale")), gender=args.get("plec") or None, **_shell_filters(args))
     if _b(args.get("per_sub")):
         best = {}
         for d in items:
