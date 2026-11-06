@@ -111,6 +111,9 @@ python web.py            # otwiera http://localhost:8000
 python web.py --lan      # dodatkowo adres dla telefonu w tym samym Wi-Fi
 ```
 
+Na Windows wystarczy dwukrotnie kliknąć **`start-strona.bat`** (strona) albo
+**`odswiez.bat`** (import nowych zrzutów + alerty).
+
 Zakładki **Wyniki / Najlepsze oferty / Do poprawy / Pokrycie**, listy
 kategorii, podkategorii i sklepu, przyciski płci, pola ceny max, temperatury
 i rabatu, „Historia ceny” z wykresem. Strona czyta tę samą bazę co `find.py`;
