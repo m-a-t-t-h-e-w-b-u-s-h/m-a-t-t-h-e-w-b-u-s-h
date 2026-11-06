@@ -13,7 +13,12 @@ także z domowego łącza. Publicznego feedu produktowego też nie znalazłem
 Narzędzie **nie obchodzi tej ochrony**. Dane zbierasz sam w swojej
 przeglądarce, a resztę robi automat:
 
-1. **Bookmarklet** (`bookmarklet/bookmarklet.html`) – na stronie kategorii lub
+1. **Rozszerzenie Chrome/Edge** (`extension/`, instrukcja w `extension/README.md`) –
+   samo zapisuje zrzut każdej strony kategorii lub produktu, którą otworzysz
+   w skalnik.pl / 8a.pl. Z folderem zakładek „gearwatch” (`refresh.py
+   --bookmarks`) i „Otwórz wszystkie” całe zbieranie to jedno kliknięcie.
+   Alternatywa bez instalacji:
+   **bookmarklet** (`bookmarklet/bookmarklet.html`) – na stronie kategorii lub
    produktu klikasz zakładkę, a w Pobranych pojawia się plik
    `gearwatch-<sklep>-<czas>.json`. Bookmarklet niczego nie wysyła do sieci.
    Zamiast niego możesz też zapisać stronę (Ctrl+S, „tylko HTML”) do `inbox/`.

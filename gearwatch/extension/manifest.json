@@ -1,0 +1,15 @@
+{
+  "manifest_version": 3,
+  "name": "gearwatch – zrzut stron Skalnik/8a",
+  "version": "1.0.0",
+  "description": "Zapisuje do Pobranych zrzut otwartych przez Ciebie stron kategorii i produktów w skalnik.pl i 8a.pl. Niczego nie wysyła do sieci i samo nie otwiera stron.",
+  "permissions": ["downloads", "storage"],
+  "host_permissions": ["https://www.skalnik.pl/*", "https://skalnik.pl/*", "https://8a.pl/*", "https://www.8a.pl/*"],
+  "background": { "service_worker": "background.js" },
+  "content_scripts": [{
+    "matches": ["https://www.skalnik.pl/*", "https://skalnik.pl/*", "https://8a.pl/*", "https://www.8a.pl/*"],
+    "js": ["content.js"],
+    "run_at": "document_idle"
+  }],
+  "action": { "default_title": "gearwatch: zapisz tę stronę teraz" }
+}

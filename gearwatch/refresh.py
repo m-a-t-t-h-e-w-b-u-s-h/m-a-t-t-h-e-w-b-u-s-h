@@ -8,6 +8,7 @@
   python refresh.py plik.json ...   # import wskazanych plików
   python refresh.py --reimport      # ponownie przetwórz wszystkie pliki z data/archive (po poprawce ekstraktora)
   python refresh.py --inspect plik  # pokaż, co ekstraktor widzi w pliku (do diagnozy)
+  python refresh.py --bookmarks     # plik zakładek z listingami, które już zrzuciłeś (import do Chrome)
 """
 from __future__ import annotations
 
@@ -33,6 +34,7 @@ def main(argv=None):
     ap.add_argument("--no-archive", action="store_true", help="nie przenoś plików do data/archive")
     ap.add_argument("--reimport", action="store_true", help="przetwórz ponownie pliki z data/archive")
     ap.add_argument("--inspect", type=Path, metavar="PLIK", help="diagnostyka ekstrakcji jednego pliku")
+    ap.add_argument("--bookmarks", action="store_true", help="zapisz data/gearwatch-zakladki.html")
     ap.add_argument("--wishlist")
     ap.add_argument("--db")
     args = ap.parse_args(argv)
@@ -40,6 +42,9 @@ def main(argv=None):
     cfg = config.load(args.wishlist)
     if args.inspect:
         inspect(args.inspect)
+        return
+    if args.bookmarks:
+        write_bookmarks(cfg)
         return
     con = db.connect(args.db)
 
@@ -78,6 +83,44 @@ def main(argv=None):
                 (datetime.now().isoformat(timespec="seconds"), n_files, n_records,
                  None if args.dry_run else sent))
     con.commit()
+
+
+def write_bookmarks(cfg):
+    """Plik zakładek (format Netscape) z adresami listingów z data/archive."""
+    import html
+    from urllib.parse import urlsplit, urlunsplit
+
+    from gw.extract import extract
+    from gw.importer import ARCHIVE
+
+    pages = {}
+    for f in archived_files():
+        try:
+            cap = load_capture(f)
+        except Exception:
+            continue
+        url = cap.get("url") or ""
+        if not cfg.shop_for_url(url):
+            continue
+        recs = extract(cap)
+        if not recs or all(r.kind == "product" for r in recs):
+            continue  # tylko listingi
+        p = urlsplit(url)
+        url = urlunsplit((p.scheme, p.netloc, p.path, p.query, ""))
+        title = (cap.get("title") or url).split("|")[0].strip()
+        pages[url] = f"{cfg.shop_for_url(url)}: {title}" + (f" ({p.query})" if p.query else "")
+    out = ARCHIVE.parent / "gearwatch-zakladki.html"
+    lines = ["<!DOCTYPE NETSCAPE-Bookmark-file-1>",
+             '<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=UTF-8">',
+             "<TITLE>Bookmarks</TITLE><H1>Bookmarks</H1><DL><p>",
+             "<DT><H3>gearwatch</H3>", "<DL><p>"]
+    for url, title in sorted(pages.items(), key=lambda kv: kv[1]):
+        lines.append(f'<DT><A HREF="{html.escape(url)}">{html.escape(title)}</A>')
+    lines += ["</DL><p>", "</DL><p>"]
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_text("\n".join(lines), encoding="utf-8")
+    print(f"Zapisano {len(pages)} stron do {out}")
+    print("Chrome: Zakładki → Menedżer zakładek → ⋮ → Importuj zakładki → wybierz ten plik.")
 
 
 def inspect(path: Path):
