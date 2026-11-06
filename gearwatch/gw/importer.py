@@ -150,7 +150,7 @@ def reclassify(con, cfg: Config) -> dict:
         if lay:
             params["warstwy"] = lay
         res = classify(cfg, row["name"], row["context"] or "", " ".join([row["description"] or "", *map(str, specs.values())]),
-                       row["brand"] or "", params, row["shop"])
+                       row["brand"] or "", params, row["shop"], row["url"])
         debug = {"kategorie": res.category_scores, "podkategorie": res.sub_scores, "trafienia": res.hits}
         con.execute("UPDATE products SET params=?, category=?, subcategory=?, class_reason=?, class_debug=? WHERE id=?",
                     (db.dumps(params), res.category, res.subcategory, res.reason, db.dumps(debug), row["id"]))

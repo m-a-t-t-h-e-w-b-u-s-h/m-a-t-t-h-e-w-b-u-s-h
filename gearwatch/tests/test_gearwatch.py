@@ -411,7 +411,7 @@ def test_gender_filter_default_men(cfg):
     ("Czekan asgard", "czekany/inne"),
     ("Osłona do czekana axe guard-yellow", "None/None"),
     ("Ekspres djinn axess 12 cm-blue", "ekspresy/sportowe"),
-    ("Ekspres hotwire 12cm-desert sky", "ekspresy/gorskie"),
+    ("Ekspres hotwire 12cm-desert sky", "ekspresy/sportowe"),
     ("Zestaw ekspresów orbit wire ks 12cm 6 pack", "ekspresy/gorskie"),
     ("Zestaw ekspresów photon ks 12cm 6 pack", "ekspresy/sportowe"),
     ("Taśma do ekspresów quickdraw bio-dyn 11mm 10cm-red", "None/None"),
@@ -654,3 +654,22 @@ def test_basket(con, cfg, tmp_path):
     assert "palnik" not in d["one_shop"]["skalnik"]["missing"] or rows["palnik"]["by_shop"]["skalnik"] is None
     d2 = webapi.api_basket(con, cfg, {"include_other": "1"})
     assert "palniki/inne" in {r["key"]: r for r in d2["rows"]}["palnik"]["paths"]
+
+
+
+@pytest.mark.parametrize("name,url,expected", [
+    # z "Koszyka minimum" (prawdziwe dane)
+    ("Ekspres hotwire 12cm-desert sky", "", "ekspresy/sportowe"),
+    ("Filtr do ekspresu AeroPress Stainless Steel Reusable Metal Coffee Filter", "", "None/None"),
+    ("Baton energetyczny This-1 Energy - nut", "", "None/None"),
+    ("Pętla do czekana Camp Dragonne Corsa", "", "None/None"),
+    ("Kurtka do biegania The North Face 24/7 Woven Jacket 2.0 - tnf black", "", "kurtki/inne"),
+    ("Kurtka softshell fw full zip 15300012-black", "https://www.skalnik.pl/kurtka-softshell-rockbros-fw-full-zip-15300012", "None/None"),
+    ("BLUZA AENERGY LIGHT ML HOODED-TSCHIEL", "", "bluzy/syntetyczne"),
+    ("Bluza polarowa Patagonia R1", "", "bluzy/syntetyczne"),
+    ("Bluza Icebreaker Merino 260", "", "bluzy/merino"),
+    ("Koszulka bawełniana logo tee", "", "bluzy/inne"),
+])
+def test_basket_review_fixes(cfg, name, url, expected):
+    r = classify(cfg, name, params=extract_params(name), url=url)
+    assert f"{r.category}/{r.subcategory}" == expected, r

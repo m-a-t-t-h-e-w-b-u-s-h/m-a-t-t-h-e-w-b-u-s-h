@@ -1,6 +1,9 @@
 """Przypisanie kategorii i podkategorii na podstawie reguł z wishlist.yaml."""
 from __future__ import annotations
 
+import re
+from urllib.parse import urlsplit
+
 from dataclasses import dataclass, field
 
 from .config import Category, Config, Subcategory
@@ -19,10 +22,12 @@ class Texts:
     context: str
     desc: str
     brand: str
+    url: str = ""
 
     @classmethod
-    def of(cls, name, context="", desc="", brand=""):
-        return cls(normalize(name), normalize(context), normalize(desc), normalize(brand))
+    def of(cls, name, context="", desc="", brand="", url=""):
+        slug = re.sub(r"[/\-_.]+", " ", urlsplit(url).path) if url else ""
+        return cls(normalize(name), normalize(context), normalize(desc), normalize(brand), normalize(slug))
 
 
 @dataclass
@@ -38,7 +43,8 @@ class Result:
 def _brand_matches(t: Texts, brands) -> bool:
     for b in brands or []:
         nb = normalize(b)
-        if nb and (nb == t.brand or t.brand.startswith(nb) or t.name.startswith(nb) or f" {nb} " in f" {t.name} "):
+        if nb and (nb == t.brand or t.brand.startswith(nb) or t.name.startswith(nb) or f" {nb} " in f" {t.name} "
+                   or f" {nb} " in f" {t.url} "):
             return True
     return False
 
@@ -97,8 +103,11 @@ def _name_beats(first, second) -> bool:
 
 
 def classify(cfg: Config, name: str, context: str = "", desc: str = "", brand: str = "",
-             params: dict | None = None, shop: str | None = None) -> Result:
-    t = Texts.of(name, context, desc, brand)
+             params: dict | None = None, shop: str | None = None, url: str = "") -> Result:
+    t = Texts.of(name, context, desc, brand, url)
+    # marki wykluczone globalnie (settings.exclude_brands) – sprawdzane też w adresie produktu
+    if _brand_matches(t, cfg.settings.get("exclude_brands") or []):
+        return Result(None, None, "wykluczona marka")
     # kontekst pasujący do wielu kategorii naraz to menu sklepu, nie informacja o produkcie
     if t.context:
         ctx_cats = [c for c in cfg.categories.values()
