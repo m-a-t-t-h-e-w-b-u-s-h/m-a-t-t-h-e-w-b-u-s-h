@@ -234,3 +234,22 @@ def test_size_filter_and_alerts(con, cfg, tmp_path):
     assert [x["row"]["name"] for x in res] == ["Buty wysokogórskie Scarpa Mont Blanc B2"]
     items = alerts.pending(con, cfg)
     assert [i["row"]["name"] for i in items] == ["Buty wysokogórskie Scarpa Mont Blanc B2"]
+
+
+def test_badges_are_not_names_and_menu_is_not_context(cfg):
+    recs = extract({"html": (FIX / "badge_listing.html").read_text(), "url": "https://www.skalnik.pl/karabinki"})
+    names = {r.url.rsplit("/", 1)[-1]: r.name for r in recs}
+    assert names["karabinek-ovo-light-tg-czerwony-1050416"] == "Karabinek Climbing Technology Ovo Light TG czerwony"
+    assert names["karabinek-ovo-vi6-617013"] == "Karabinek ovo vi6"  # z adresu URL
+    assert "Crashpady" not in recs[0].context
+    for r in recs:
+        assert classify(cfg, r.name, r.context).category == "karabinki"
+
+
+def test_reimport_fixes_listing_names(con, cfg, tmp_path):
+    f = tmp_path / "a.html"
+    shutil.copy(FIX / "badge_listing.html", f)
+    import_file(con, cfg, f, archive=False)
+    con.execute("UPDATE products SET name='-27%'")
+    import_file(con, cfg, f, archive=False, force=True)
+    assert "-27%" not in [r["name"] for r in con.execute("SELECT name FROM products")]

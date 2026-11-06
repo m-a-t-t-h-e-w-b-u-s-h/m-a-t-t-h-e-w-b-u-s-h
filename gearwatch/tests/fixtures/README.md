@@ -3,3 +3,8 @@ markupu Magento i schema.org, nie skopiowane ze sklepów (sklepy blokują
 automatyczny dostęp). Służą do testowania logiki, nie potwierdzają, że
 selektory pasują do prawdziwych stron. Po pierwszych prawdziwych zrzutach
 z bookmarkletu warto dodać je tutaj jako fixtury regresyjne.
+
+`badge_listing.html` odtwarza problem zaobserwowany na prawdziwym zrzucie
+Skalnika: link ze zdjęcia z plakietką rabatową (`-27%`, `BLACK MONTH -48%`)
+był brany jako nazwa produktu, a menu sklepu jako breadcrumbs. Markup jest
+nadal syntetyczny.

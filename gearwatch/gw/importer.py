@@ -64,7 +64,7 @@ def _upsert(con, cfg: Config, shop: str, rec: Record, captured_at: str, source: 
         con.execute(
             "UPDATE products SET name=?, brand=COALESCE(?,brand), context=?, description=?, specs=?, sizes=?,"
             " method=?, last_seen=MAX(last_seen, ?) WHERE id=?",
-            (rec.name if detail or not row["name"] else row["name"],
+            (rec.name if detail or not row["name"] or row["specs"] in (None, "", "{}") else row["name"],
              rec.brand,
              rec.context if (detail or not row["context"]) and rec.context else row["context"],
              rec.description if detail else row["description"],
@@ -85,23 +85,29 @@ def _upsert(con, cfg: Config, shop: str, rec: Record, captured_at: str, source: 
     return pid
 
 
-def import_file(con, cfg: Config, path: Path, archive: bool = True) -> tuple[int, str]:
+def archived_files() -> list[Path]:
+    return sorted(ARCHIVE.glob("*/*.json")) + sorted(ARCHIVE.glob("*/*.htm*"))
+
+
+def import_file(con, cfg: Config, path: Path, archive: bool = True, force: bool = False) -> tuple[int, str]:
     """Zwraca (liczba rekordów, komunikat)."""
     data = path.read_bytes()
     sha = hashlib.sha256(data).hexdigest()
-    if con.execute("SELECT 1 FROM imported_files WHERE sha256=?", (sha,)).fetchone():
+    if not force and con.execute("SELECT 1 FROM imported_files WHERE sha256=?", (sha,)).fetchone():
         msg = "już zaimportowany"
         count = 0
     else:
         cap = load_capture(path)
         shop = cfg.shop_for_url(cap.get("url") or "")
         if not shop:
+            if archive:
+                _archive(path)
             return 0, f"nieznany sklep ({cap.get('url') or 'brak URL'}) – pominięty"
         records = extract(cap)
         for rec in records:
             rec_shop = cfg.shop_for_url(rec.url) or shop
             _upsert(con, cfg, rec_shop, rec, cap["captured_at"], path.name)
-        con.execute("INSERT INTO imported_files VALUES (?,?,?)",
+        con.execute("INSERT OR REPLACE INTO imported_files VALUES (?,?,?)",
                     (sha, path.name, datetime.now(timezone.utc).isoformat(timespec="seconds")))
         methods = sorted({r.method for r in records})
         count = len(records)
@@ -109,11 +115,15 @@ def import_file(con, cfg: Config, path: Path, archive: bool = True) -> tuple[int
         if not records:
             msg += "  ⚠ nic nie wyciągnięto – selektory wymagają poprawki"
     if archive:
-        dest = ARCHIVE / datetime.now().strftime("%Y-%m-%d")
-        dest.mkdir(parents=True, exist_ok=True)
-        shutil.move(str(path), str(dest / path.name))
+        _archive(path)
     con.commit()
     return count, msg
+
+
+def _archive(path: Path) -> None:
+    dest = ARCHIVE / datetime.now().strftime("%Y-%m-%d")
+    dest.mkdir(parents=True, exist_ok=True)
+    shutil.move(str(path), str(dest / path.name))
 
 
 def reclassify(con, cfg: Config) -> dict:

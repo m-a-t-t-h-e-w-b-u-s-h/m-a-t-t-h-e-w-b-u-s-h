@@ -157,7 +157,45 @@ def _breadcrumbs(soup: BeautifulSoup, nodes) -> str:
             if names:
                 return " > ".join(names)
     bc = soup.select_one(".breadcrumbs, nav.breadcrumb, [aria-label=breadcrumb], .breadcrumb")
-    return _text(bc)
+    if not bc:
+        return ""
+    items = [_text(li) for li in bc.find_all("li")] or [_text(bc)]
+    text = " > ".join(i for i in items if i)
+    # zbyt długi "breadcrumb" to zwykle całe menu sklepu – psułby klasyfikację
+    return text if len(text) <= 200 else ""
+
+
+BADGE_RE = re.compile(r"%|\bblack\s+(month|week|friday)\b|\b(nowosc|nowość|promocja|bestseller|outlet|"
+                      r"wyprzedaz|wyprzedaż|darmowa dostawa|ostatnie sztuki)\b", re.I)
+
+
+def _plausible_name(t: str) -> bool:
+    t = (t or "").strip()
+    return len(t) >= 6 and len(re.findall(r"[^\W\d_]", t)) >= 4 and not BADGE_RE.search(t) \
+        and not PRICE_RE.search(t)
+
+
+def _slug_name(url: str) -> str:
+    slug = urlsplit(url).path.rstrip("/").rsplit("/", 1)[-1]
+    slug = re.sub(r"\.html?$", "", slug)
+    slug = re.sub(r"-\d{4,}$", "", slug)
+    return slug.replace("-", " ").strip().capitalize()
+
+
+def _tile_name(tile, url: str, base_url: str) -> str:
+    """Nazwa produktu z kafelka; omija plakietki typu '-27%' / 'BLACK MONTH'."""
+    for el in tile.select(".product-item-name, .product-name, [itemprop=name], a.product-item-link, "
+                          ".product-title, .name, h2, h3, h4"):
+        t = _text(el) or el.get("content") or ""
+        if _plausible_name(t):
+            return t
+    cands = []
+    for a in tile.find_all("a", href=True):
+        if canonical_url(urljoin(base_url, a["href"])) == url:
+            cands += [_text(a), a.get("title") or "", a.get("aria-label") or ""]
+    cands += [img.get("alt") or img.get("title") or "" for img in tile.find_all("img")]
+    good = [c.strip() for c in cands if _plausible_name(c)]
+    return max(good, key=len) if good else _slug_name(url)
 
 
 # ------------------------------------------------------------- strona produktu
@@ -242,7 +280,7 @@ def _magento_tiles(soup: BeautifulSoup, base_url: str, context: str) -> list[Rec
             final, old = _prices_from_text(_text(tile))
         out.append(Record(
             url=url,
-            name=_text(link) or link.get("title") or "",
+            name=_tile_name(tile, url, base_url),
             price=final, catalog_price=old, context=context, method="magento-tile",
         ))
     return [r for r in out if r.name]
@@ -273,7 +311,7 @@ def _generic_tiles(soup: BeautifulSoup, base_url: str, context: str) -> list[Rec
                 url = hrefs.pop()
                 if url not in found:
                     final, old = _prices_from_text(_text(el))
-                    name = max((_text(a) for a in links), key=len)
+                    name = _tile_name(el, url, base_url)
                     found[url] = Record(url=url, name=name, price=final, catalog_price=old,
                                         context=context, method="generic-tile")
                 break
@@ -292,7 +330,7 @@ def extract(capture: dict) -> list[Record]:
     base_url = capture.get("url") or (canon.get("href") or canon.get("content") if canon else "") or ""
     nodes = list(_jsonld_nodes(soup, capture.get("jsonld")))
     context = _breadcrumbs(soup, nodes)
-    h1 = _text(soup.find("h1"))
+    h1 = _text(soup.find("h1"))[:120]
 
     ld_products = [n for n in nodes if "Product" in _types(n) or "ProductGroup" in _types(n)]
 

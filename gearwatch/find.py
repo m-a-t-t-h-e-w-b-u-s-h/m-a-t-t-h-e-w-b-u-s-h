@@ -103,9 +103,9 @@ def cmd_categories(con, cfg, args):
         for sn, sub in cat.subcategories.items():
             flag = "" if sub.wanted else "  (wanted: false)"
             alert = f"  alert < {money(sub.alert_below)}" if sub.alert_below else ""
-            print(f"  {cn}/{sn:<20} {counts.get((cn, sn), 0):>4} prod.{flag}{alert}")
+            print(f"  {cn + '/' + sn:<36} {counts.get((cn, sn), 0):>4} prod.{flag}{alert}")
         if counts.get((cn, "unknown")):
-            print(f"  {cn}/unknown{'':<13} {counts[(cn, 'unknown')]:>4} prod.")
+            print(f"  {cn + '/unknown':<36} {counts[(cn, 'unknown')]:>4} prod.")
 
 
 def main(argv=None):
