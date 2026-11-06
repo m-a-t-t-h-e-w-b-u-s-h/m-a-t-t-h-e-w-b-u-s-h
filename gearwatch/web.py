@@ -30,7 +30,9 @@ ROUTES = {
     "/api/coverage": webapi.api_coverage,
     "/api/history": webapi.api_history,
     "/api/basket": webapi.api_basket,
+    "/api/hidden": webapi.api_hidden,
 }
+POST_ROUTES = {"/api/hide": webapi.api_hide, "/api/unhide": webapi.api_unhide}
 
 
 def make_handler(wishlist: str | None, db_path: str | None):
@@ -48,6 +50,20 @@ def make_handler(wishlist: str | None, db_path: str | None):
 
         def _json(self, code: int, data):
             self._send(code, json.dumps(data, ensure_ascii=False).encode("utf-8"), "application/json; charset=utf-8")
+
+        def do_POST(self):
+            u = urlsplit(self.path)
+            fn = POST_ROUTES.get(u.path)
+            if not fn:
+                return self._json(404, {"error": "nie ma takiej strony"})
+            args = {k: v[-1] for k, v in parse_qs(u.query).items()}
+            con = db.connect(db_path)
+            try:
+                return self._json(200, fn(con, config.load(wishlist), args))
+            except ValueError as e:
+                return self._json(400, {"error": str(e)})
+            finally:
+                con.close()
 
         def do_GET(self):
             u = urlsplit(self.path)

@@ -166,6 +166,22 @@ def api_basket(con, cfg: Config, args: dict) -> dict:
         cur = it["by_shop"].get(d["shop"])
         if cur is None or d["effective"] < cur["effective"]:
             it["by_shop"][d["shop"]] = d
+    # podpowiedź: najtańsza sztuka z kubełka "inne" tej samej grupy (np. śpiwór bez znanej temperatury)
+    if not include_other:
+        other_sel = [(cn, sn, True) for cn, c in cfg.categories.items() for sn, sub in c.subcategories.items()
+                     if sub.fallback_of and sub.group]
+        if other_sel:
+            others, _ = search(con, cfg, Query(selectors=other_sel), in_stock=_b(args.get("in_stock")),
+                               include_stale=_b(args.get("stale")), gender=args.get("plec") or None,
+                               include_unwanted=True)
+            for x in others:
+                it = items.get(x["sub"].group)
+                if it is None:
+                    continue
+                d = _item(x)
+                cur = it.get("other")
+                if cur is None or d["effective"] < cur["effective"]:
+                    it["other"] = d
     rows = [items[k] for k in order]
     total = round(sum(r["best"]["effective"] for r in rows if r["best"]), 2)
     split = {sh: round(sum(r["best"]["effective"] for r in rows if r["best"] and r["best"]["shop"] == sh), 2)
@@ -174,3 +190,26 @@ def api_basket(con, cfg: Config, args: dict) -> dict:
                      "missing": [r["label"] for r in rows if r["by_shop"][sh] is None]} for sh in shops}
     return {"rows": rows, "total": total, "split": split, "one_shop": one_shop, "shops": shops,
             "missing": [r["label"] for r in rows if not r["best"]]}
+
+
+def api_hide(con, cfg: Config, args: dict) -> dict:
+    from datetime import datetime
+    pid = int(_f(args.get("id")) or 0)
+    if not con.execute("SELECT 1 FROM products WHERE id=?", (pid,)).fetchone():
+        raise ValueError(f"brak produktu #{pid}")
+    con.execute("INSERT OR REPLACE INTO hidden VALUES (?, ?)", (pid, datetime.now().isoformat(timespec="seconds")))
+    con.commit()
+    return {"ok": True, "id": pid}
+
+
+def api_unhide(con, cfg: Config, args: dict) -> dict:
+    pid = int(_f(args.get("id")) or 0)
+    con.execute("DELETE FROM hidden WHERE product_id=?", (pid,))
+    con.commit()
+    return {"ok": True, "id": pid}
+
+
+def api_hidden(con, cfg: Config, args: dict) -> dict:
+    rows = con.execute("""SELECT p.id, p.name, p.shop, p.url, p.category, p.subcategory, h.hidden_at
+                          FROM hidden h JOIN products p ON p.id = h.product_id ORDER BY h.hidden_at DESC""").fetchall()
+    return {"items": [dict(r) for r in rows]}

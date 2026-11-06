@@ -175,7 +175,8 @@ def latest_rows(con, cfg: Config, include_stale: bool = False):
         """SELECT p.*, pr.day, pr.price, pr.catalog_price, pr.effective, pr.available
            FROM products p
            JOIN prices pr ON pr.product_id = p.id
-           WHERE pr.day = (SELECT MAX(day) FROM prices WHERE product_id = p.id) AND pr.day >= ?""",
+           WHERE pr.day = (SELECT MAX(day) FROM prices WHERE product_id = p.id) AND pr.day >= ?
+             AND p.id NOT IN (SELECT product_id FROM hidden)""",
         (since,)).fetchall()
 
 

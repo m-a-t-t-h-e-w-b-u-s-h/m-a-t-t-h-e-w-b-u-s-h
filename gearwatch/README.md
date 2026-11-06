@@ -122,6 +122,11 @@ pola wyboru (zapamiętywane). Podkategorie z tym samym `group` w
 jedne buty B2/B3); kubełki „inne” są pomijane, chyba że zaznaczysz
 „licz też kubełki inne”.
 
+**Ukryj** przy produkcie (wyniki, oferty, koszyk) usuwa go na stałe z wyników,
+koszyka i alertów – np. gdy marka jest tylko w logo na stronie. Lista ukrytych
+z przyciskiem „Przywróć” jest w zakładce „Do poprawy”; w terminalu:
+`find.py --hide ID` / `--unhide ID`.
+
 Zakładki **Wyniki / Najlepsze oferty / Do poprawy / Pokrycie**, listy
 kategorii, podkategorii i sklepu, przyciski płci, pola ceny max, temperatury
 i rabatu, „Historia ceny” z wykresem. Strona czyta tę samą bazę co `find.py`;

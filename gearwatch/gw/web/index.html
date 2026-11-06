@@ -239,12 +239,18 @@ async function load() {
       BASKET = d; renderBasket();
     } else if (TAB === "unknown") {
       const d = await api("/api/unknown");
+      const hd = await api("/api/hidden");
       sum.textContent = `${d.total} produktów bez jednoznacznej podkategorii – popraw reguły w wishlist.yaml i uruchom refresh.py --reclassify`;
+      HIDDEN_HTML = hd.items.length ? `<h3 style="margin:22px 0 8px">Ukryte ręcznie (${hd.items.length})</h3><div class="tablewrap"><table>${
+        hd.items.map(r => `<tr><td>#${r.id}</td><td><a class="name" href="${esc(r.url)}" target="_blank" rel="noopener">${esc(r.name)}</a>
+          <div class="meta">${esc(r.shop)} · ${esc(r.category)}/${esc(r.subcategory)}</div></td>
+          <td class="num"><button class="btn" onclick="unhide_(${r.id})">Przywróć</button></td></tr>`).join("")}</table></div>` : "";
       out.innerHTML = d.items.length ? `<div class="tablewrap"><table><tr><th>#</th><th>Kategoria</th><th>Powód</th><th>Produkt</th><th>Trafienia</th></tr>${
         d.items.map(r => `<tr><td>${r.id}</td><td>${esc(r.category)}</td><td>${esc(r.reason)}</td>
           <td><a class="name" href="${esc(r.url)}" target="_blank" rel="noopener">${esc(r.name)}</a><div class="meta">${esc(r.shop)}</div></td>
           <td class="meta">${esc(JSON.stringify(r.hits))}</td></tr>`).join("")}</table></div>`
         : `<div class="empty">Wszystko sklasyfikowane 🎉</div>`;
+      out.innerHTML += HIDDEN_HTML;
     } else {
       const d = await api("/api/coverage");
       const miss = d.rows.reduce((n, r) => n + Object.values(r.shops).filter(c => c && !c.n).length, 0);
@@ -262,7 +268,15 @@ async function load() {
   }
 }
 
-let BASKET = null;
+let BASKET = null, HIDDEN_HTML = "";
+async function hide_(id) {
+  const r = await fetch("/api/hide?id=" + id, {method: "POST"});
+  if (r.ok) load(); else alert("Nie udało się ukryć #" + id);
+}
+async function unhide_(id) {
+  const r = await fetch("/api/unhide?id=" + id, {method: "POST"});
+  if (r.ok) load();
+}
 const offKeys = () => new Set(store.get().basket_off || []);
 function toggleRow(key) {
   const st = store.get(), off = new Set(st.basket_off || []);
@@ -292,11 +306,15 @@ function renderBasket() {
         <td><b>${esc(r.label)}</b>${r.paths.length > 1 ? `<div class="meta">${esc(r.paths.join(", "))}</div>` : ""}</td>
         <td>${b ? `<a class="name" href="${esc(b.url)}" target="_blank" rel="noopener">${esc(b.name)}</a>
               <div class="meta">${esc(b.shop)} · ${esc(b.path)}${b.params ? " · " + esc(b.params) : ""}</div>
-              <button class="btn" style="margin-top:4px" onclick="history_(${b.id})">Historia ceny</button>`
+              <button class="btn" style="margin-top:4px" onclick="history_(${b.id})">Historia ceny</button>
+              <button class="btn" style="margin-top:4px" title="Ukryj na stałe" onclick="hide_(${b.id})">Ukryj</button>`
             : `<span class="meta">brak pasujących produktów</span>`}</td>
         ${d.shops.map(s => { const x = r.by_shop[s];
           return `<td class="num">${x ? (b && x.id === b.id ? `<b>${pln(x.effective)}</b>` : pln(x.effective)) : `<span class="meta">—</span>`}</td>`; }).join("")}
-        <td class="num meta">${r.count}</td></tr>`; }).join("")}
+        <td class="num meta">${r.count}</td></tr>${r.other && (!b || r.other.effective < b.effective) ? `<tr class="${isOff ? "off" : ""}"><td></td><td></td>
+        <td colspan="${d.shops.length + 2}" class="meta">↳ taniej, ale ${esc(r.other.path.endsWith("/inne") ? "bez znanego sezonu/typu" : "")}:
+          <a href="${esc(r.other.url)}" target="_blank" rel="noopener">${esc(r.other.name)}</a> – <b>${pln(r.other.effective)}</b> (${esc(r.other.shop)}).
+          Otwórz stronę produktu – rozszerzenie zapisze specyfikację i produkt trafi do właściwej podkategorii.</td></tr>` : ""}`; }).join("")}
     </table></div>
     <p class="meta" style="margin-top:10px">Liczę jedną sztukę na pozycję (np. jeden karabinek, jeden ekspres – zestawy też się liczą, jeśli są najtańsze).
       Ceny efektywne: Skalnik z Twoim −30% od ceny katalogowej.</p>`;
@@ -318,7 +336,8 @@ function card(it) {
     <div><a class="name" href="${esc(it.url)}" target="_blank" rel="noopener">${esc(it.name)}</a>
       ${it.params ? `<div class="meta">${esc(it.params)}</div>` : ""}
       <div class="tags">${tags.join("")}<span class="tag">#${it.id} · ${esc(it.day)}</span></div></div>
-    <div class="price"><b>${pln(it.effective)}</b>${old}<button class="btn" onclick="history_(${it.id})">Historia ceny</button></div>
+    <div class="price"><b>${pln(it.effective)}</b>${old}<button class="btn" onclick="history_(${it.id})">Historia ceny</button>
+      <button class="btn" title="Ukryj na stałe (wyniki, koszyk, alerty)" onclick="hide_(${it.id})">Ukryj</button></div>
   </div>`;
 }
 

@@ -125,7 +125,8 @@ categories:
   czekany:
     group: czekan   # koszyk minimum: jedna sztuka z tej kategorii
     keywords: [czekan*, ice axe, ice tool*, dziab*]
-    exclude: [oslon*, axe guard, ochraniacz*, smycz*, leash, pokrowiec*, kabur*, petl*, uchwyt*, kolce, grot*]
+    exclude: [oslon*, axe guard, ochraniacz*, smycz*, leash, pokrowiec*, kabur*, petl*, uchwyt*, kolce, grot*,
+              lopatk*, dziob*, glowic*, wymienn*, do czekana, do czekanow]
     fallback: inne
     subcategories:
       turystyczne:
@@ -387,7 +388,8 @@ categories:
     subcategories:
       b2:
         # Raki półautomatyczne. 8a pisze wprost "do raków półautomatycznych" / "pod półautomaty".
-        keywords: [b2, do rakow polautomatycznych, pod polautomaty, polautomat*, pod raki, wysokogorsk*,
+        require_name: true   # tytuł listingu "Buty wysokogórskie" nie wystarcza
+        keywords: [b2, do rakow polautomatycznych, pod polautomaty, polautomat*, pod raki,
                    ribelle, trango tech, aequilibrium, crow, rapace, kento, zodiac tech, mont blanc, manta tech,
                    ortles light, ortles edge, ascent evo, pinnacle, garmont tower, breithorn]
         exclude: [b3, b1, do rakow automatycznych, pod automaty, podejsciow*, trail*, nepal, phantom, olympus,
@@ -397,6 +399,7 @@ categories:
         alert_below: 1200
       b3:
         # Raki automatyczne. "do raków automatycznych" / "pod automaty", buty ekspedycyjne.
+        require_name: true
         keywords: [b3, do rakow automatycznych, pod automaty, ekspedycyjn*, nepal, phantom, olympus mons,
                    g-summit, g summit, g-tech, karka, 6000, 8000, mont blanc pro, trango pro, trango tower extreme,
                    expert pro, mountain pro, summit verto]

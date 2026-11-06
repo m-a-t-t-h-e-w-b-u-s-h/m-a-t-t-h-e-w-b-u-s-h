@@ -53,6 +53,10 @@ CREATE TABLE IF NOT EXISTS alerts_sent (
     effective     REAL NOT NULL,
     sent_at       TEXT NOT NULL
 );
+CREATE TABLE IF NOT EXISTS hidden (
+    product_id    INTEGER PRIMARY KEY,   -- produkty ukryte ręcznie ("Ukryj" na stronie / find.py --hide)
+    hidden_at     TEXT NOT NULL
+);
 CREATE TABLE IF NOT EXISTS imported_files (
     sha256        TEXT PRIMARY KEY,
     name          TEXT,

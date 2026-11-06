@@ -131,6 +131,7 @@ def test_parse_size():
     ("Crashpad Ocun Paddy", ("pozostale", "crashpad")),
     ("Czapka Arc'teryx Rho", ("pozostale", "czapka")),
     ("Buty wysokogórskie La Sportiva Trango Tech B2", ("buty", "b2")),
+    ("Buty wysokogórskie Dolomite Veloce GTX - pewter grey", ("buty", "inne")),
 ])
 def test_classification(cfg, name, expected):
     r = classify(cfg, name)
@@ -673,3 +674,34 @@ def test_basket(con, cfg, tmp_path):
 def test_basket_review_fixes(cfg, name, url, expected):
     r = classify(cfg, name, params=extract_params(name), url=url)
     assert f"{r.category}/{r.subcategory}" == expected, r
+
+
+
+def test_boots_context_alone_is_not_b2(cfg):
+    r = classify(cfg, "Buty trekkingowe męskie The North Face Verto Alpine Mid GORE-TEX - asphalt grey/tnf black",
+                 "Buty > Buty wysokogórskie > do raków półautomatycznych")
+    assert r.subcategory == "inne"
+
+
+def test_axe_spare_parts_dropped(cfg):
+    assert classify(cfg, "Łopatka do czekana Grivel Adze Tech Machine").category is None
+
+
+def test_hide_removes_from_search_and_basket(con, cfg, tmp_path):
+    from gw import webapi
+    _import_all(con, cfg, tmp_path)
+    con.execute("UPDATE prices SET day=date('now')")
+    pid = webapi.api_search(con, cfg, {"cat": "karabinki", "sub": "ekspresowe"})["items"][0]["id"]
+    webapi.api_hide(con, cfg, {"id": pid})
+    assert webapi.api_search(con, cfg, {"cat": "karabinki", "sub": "ekspresowe"})["items"] == []
+    assert webapi.api_hidden(con, cfg, {})["items"][0]["id"] == pid
+    webapi.api_unhide(con, cfg, {"id": pid})
+    assert webapi.api_search(con, cfg, {"cat": "karabinki", "sub": "ekspresowe"})["items"]
+
+
+def test_basket_hints_cheaper_unknown_season(con, cfg, tmp_path):
+    from gw import webapi
+    _import_all(con, cfg, tmp_path)
+    con.execute("UPDATE prices SET day=date('now')")
+    rows = {r["key"]: r for r in webapi.api_basket(con, cfg, {})["rows"]}
+    assert rows["palnik"]["other"]["name"] == "Kuchenka Jetboil Flash"   # palniki/inne

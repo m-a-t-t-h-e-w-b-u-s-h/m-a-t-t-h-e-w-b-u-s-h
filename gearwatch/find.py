@@ -209,12 +209,19 @@ def main(argv=None):
     ap.add_argument("--deals", action="store_true", help="najlepsze oferty (rabat, spadek ceny, próg alertu)")
     ap.add_argument("--min-discount", type=float, default=0, metavar="PROC", help="z --deals: minimalny rabat w %%")
     ap.add_argument("--per-sub", action="store_true", help="z --deals: najlepsza oferta w każdej podkategorii")
+    ap.add_argument("--hide", type=int, metavar="ID", help="ukryj produkt na stałe (wyniki, koszyk, alerty)")
+    ap.add_argument("--unhide", type=int, metavar="ID", help="przywróć ukryty produkt")
     ap.add_argument("--wishlist", help="ścieżka do wishlist.yaml")
     ap.add_argument("--db", help="ścieżka do bazy SQLite")
     args = ap.parse_args(argv)
 
     cfg = config.load(args.wishlist)
     con = db.connect(args.db)
+    if args.hide or args.unhide:
+        from gw import webapi
+        (webapi.api_hide if args.hide else webapi.api_unhide)(con, cfg, {"id": args.hide or args.unhide})
+        print(("Ukryto" if args.hide else "Przywrócono") + f" produkt #{args.hide or args.unhide}")
+        return
     if args.unknown:
         cmd_unknown(con, cfg, args)
     elif args.history:
