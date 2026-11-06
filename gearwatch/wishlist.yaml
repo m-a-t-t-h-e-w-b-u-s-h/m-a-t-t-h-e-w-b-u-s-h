@@ -48,19 +48,23 @@ categories:
     subcategories:
       ekspresowe:
         # sport, lite wire
-        keywords: [lite wire, litewire, hotwire, sport*, wire sport, straight gate, bent gate, solid gate]
-        exclude: [lock, screw*, zakrec*, hms]
+        # sport: lite wire + pełne zamki proste/gięte (SG = straight gate, BG = bent gate)
+        keywords: [lite wire, litewire, hotwire, sport*, wire sport, straight gate, bent gate, solid gate,
+                   sg, bg, straight, bent, prosty, giety, pure, spirit, djinn, orbit, hawk, lime s, lime b]
+        exclude: [lock, screw*, zakrec*, hms, sgl, tgl, bgl, 2lock, 3lock, tg, twin gate, tri, safe, slider]
         brands: [Black Diamond, Petzl, DMM, Climbing Technology, Camp, Edelrid, Wild Country]
         params: [waga_g, wytrzymalosc_kn]
         alert_below: 30
       hms:
-        keywords: [hms, zakrec*, screwgate, screw gate, screw, twistlock, twist lock, triact, ball lock, auto lock, autolock, automat*, magnetron, lock, rocklock, gridlock, pearlock, triple, triplex, belay, attache, twist]
+        keywords: [hms, zakrec*, screwgate, screw gate, screw, twistlock, twist lock, triact, ball lock, auto lock, autolock, automat*, magnetron, lock, rocklock, gridlock, pearlock, triple, triplex, belay, attache, twist,
+                   sgl, tgl, bgl, 2lock, 3lock, tg, twin gate, tri, safe, slider]
         params: [waga_g, typ_zamka]
         wanted: false
       gorskie:
         # zwykłe (bez zamka) do ekspresów do wspinania górskiego
-        keywords: [nano, oz, micro*, mini*, miniwire, ultralight, alpin*, gorsk*, ange, helium, phantom, wire, wg, wiregate, wire gate]
-        exclude: [lite wire, litewire, hotwire, lock, screw*, zakrec*, hms]
+        keywords: [nano, oz, micro*, mini*, miniwire, ultralight, alpin*, gorsk*, ange, helium, phantom, wire, wg,
+                   wiregate, wire gate, wildwire, nineteen g, fly-weight, flyweight, lime w]
+        exclude: [lite wire, litewire, hotwire, lock, screw*, zakrec*, hms, sgl, tgl, bgl, 2lock, 3lock, tg, twin gate]
         params: [waga_g]
       inne:
         # owale, sprzętowe itp. – bez dopasowania do powyższych; ukryte w wynikach
