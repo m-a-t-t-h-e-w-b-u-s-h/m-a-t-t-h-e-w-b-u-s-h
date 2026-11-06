@@ -159,8 +159,15 @@ def _breadcrumbs(soup: BeautifulSoup, nodes) -> str:
     bc = soup.select_one(".breadcrumbs, nav.breadcrumb, [aria-label=breadcrumb], .breadcrumb")
     if not bc:
         return ""
-    items = [_text(li) for li in bc.find_all("li")] or [_text(bc)]
-    text = " > ".join(i for i in items if i)
+    lst = bc.find(["ol", "ul"])
+    lis = lst.find_all("li", recursive=False) if lst else []
+    items = []
+    for li in lis:  # tylko bezpośredni tekst/link elementu, bez zagnieżdżonych podmenu
+        a = li.find("a", recursive=False)
+        t = _text(a) if a else " ".join(x.strip() for x in li.find_all(string=True, recursive=False))
+        if t.strip() and len(t) <= 40:
+            items.append(t.strip())
+    text = " > ".join(items) if lis else _text(bc)
     # zbyt długi "breadcrumb" to zwykle całe menu sklepu – psułby klasyfikację
     return text if len(text) <= 200 else ""
 

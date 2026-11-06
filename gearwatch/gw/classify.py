@@ -9,6 +9,7 @@ from .text import matching_keywords, normalize
 W_NAME, W_CONTEXT, W_DESC, W_BRAND, W_PARAM = 3, 2, 1, 1, 3
 MIN_CATEGORY = 3   # np. jedno trafienie w nazwie
 MIN_SUB = 1
+MAX_CONTEXT_CATEGORIES = 3
 UNKNOWN = "unknown"
 
 
@@ -88,6 +89,13 @@ def _sub_score(sub: Subcategory, t: Texts, params, shop):
 def classify(cfg: Config, name: str, context: str = "", desc: str = "", brand: str = "",
              params: dict | None = None, shop: str | None = None) -> Result:
     t = Texts.of(name, context, desc, brand)
+    # kontekst pasujący do wielu kategorii naraz to menu sklepu, nie informacja o produkcie
+    if t.context:
+        ctx_cats = [c for c in cfg.categories.values()
+                    if any(matching_keywords(t.context, sub.keywords) for sub in c.subcategories.values())
+                    or matching_keywords(t.context, c.keywords)]
+        if len(ctx_cats) >= MAX_CONTEXT_CATEGORIES:
+            t.context = ""
     cat_margin = cfg.settings.get("category_margin", 2)
     sub_margin = cfg.settings.get("subcategory_margin", 2)
 

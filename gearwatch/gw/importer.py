@@ -66,7 +66,8 @@ def _upsert(con, cfg: Config, shop: str, rec: Record, captured_at: str, source: 
             " method=?, last_seen=MAX(last_seen, ?) WHERE id=?",
             (rec.name if detail or not row["name"] or row["specs"] in (None, "", "{}") else row["name"],
              rec.brand,
-             rec.context if (detail or not row["context"]) and rec.context else row["context"],
+             rec.context if (detail or not row["context"] or row["specs"] in (None, "", "{}")) and rec.context
+             else row["context"],
              rec.description if detail else row["description"],
              db.dumps(rec.specs) if detail else row["specs"],
              db.dumps(rec.sizes) if detail or rec.sizes else row["sizes"],

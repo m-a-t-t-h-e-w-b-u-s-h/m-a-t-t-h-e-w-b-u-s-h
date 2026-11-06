@@ -253,3 +253,19 @@ def test_reimport_fixes_listing_names(con, cfg, tmp_path):
     con.execute("UPDATE products SET name='-27%'")
     import_file(con, cfg, f, archive=False, force=True)
     assert "-27%" not in [r["name"] for r in con.execute("SELECT name FROM products")]
+
+
+def test_menu_like_context_is_ignored(cfg):
+    # zaobserwowane na prawdziwym Skalniku: kontekst = fragment menu
+    ctx = "Wspinaczka > Karabinki > Kości > Plecaki > Buty > Crashpady"
+    r = classify(cfg, "KARABINEK OVO LIGHT TG-CZERWONY", ctx)
+    assert r.category == "karabinki"
+
+
+def test_nested_breadcrumb_menu_is_flattened():
+    html = ("<html><body><div class='breadcrumbs'><ul><li><a>Strona główna</a></li>"
+            "<li><a>Wspinaczka</a><ul><li>Crashpady</li><li>Plecaki</li></ul></li><li>Karabinki</li></ul></div>"
+            "<h1>Karabinki</h1><li class='product-item'><a class='product-item-link' href='/k-1'>Karabinek Test Alfa</a>"
+            "<span data-price-type='finalPrice' data-price-amount='10'></span></li></body></html>")
+    (r,) = extract({"html": html, "url": "https://www.skalnik.pl/karabinki"})
+    assert "Crashpady" not in r.context and "Karabinki" in r.context
