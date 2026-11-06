@@ -118,6 +118,11 @@ def extract_params(name: str, description: str = "", specs: dict | None = None, 
 
     p["typ_zamka"] = _gate(_spec(specs, "zamek", "zamk", "gate") or full)
 
+    nn = normalize(name)
+    if re.search(r"spiwor|sleeping bag|quilt|karimat|mata|materac|pad", nn):
+        m2 = re.search(r"(?<![\d.,])(1[5-9]\d|2[0-3]\d)\s*cm", nn)  # 8a: "Śpiwór ... (190 cm)"
+        if m2:
+            out["dlugosc_spec_cm"] = float(m2.group(1))
     dl = _spec(specs, "dlugosc", "length")
     p["dlugosc_cm"] = _first(NUM + r"\s*cm\b", dl or n) or _first(NUM + r"\s*cm\b", full)
 
@@ -210,6 +215,11 @@ def body_fit_params(name: str, description: str = "", specs: dict | None = None,
         or re.search(r"(?:do|max\.?)\s*(1\d{2}|2[0-2]\d)\s*cm\s*wzrost", full)
     if m:
         out["wzrost_max_cm"] = int(m.group(1))
+    nn = normalize(name)
+    if re.search(r"spiwor|sleeping bag|quilt|karimat|mata|materac|pad", nn):
+        m2 = re.search(r"(?<![\d.,])(1[5-9]\d|2[0-3]\d)\s*cm", nn)  # 8a: "Śpiwór ... (190 cm)"
+        if m2:
+            out["dlugosc_spec_cm"] = float(m2.group(1))
     dl = _spec(specs, "dlugosc", "length")
     if dl:
         vals = [_f(v) for v in re.findall(r"(\d{2,3}(?:[.,]\d)?)\s*(?:x\s*\d{2,3}(?:[.,]\d)?\s*)*cm", dl)]
@@ -268,3 +278,22 @@ def layers(name: str, description: str = "", specs: dict | None = None, membrane
     if re.search(r"dwuwarstw|two[\s\-]layer", text):
         return "2L"
     return {"Gore-Tex Pro": "3L", "Gore-Tex Active": "3L", "Gore-Tex Paclite": "2,5L"}.get(membrane_label)
+
+
+# R-value znanych mat (dane producentów) – używane tylko, gdy nazwa/specyfikacja nie podaje R
+KNOWN_R = [
+    (r"xtherm\s+nxt", 7.3), (r"xtherm", 6.9), (r"xlite\s+nxt", 4.5), (r"uberlite", 2.3), (r"z\s?lite\s+sol", 2.0),
+]
+
+
+def mat_r_value(name: str) -> float | None:
+    n = normalize(name)
+    if not re.search(r"karimat|mata|materac|pad|neoair|z\s?lite", n):
+        return None
+    m = re.search(r"(?<![a-z0-9.,])(\d(?:[.,]\d)?)\s?r(?![a-z0-9])", n)  # Exped "Ultra 5R"
+    if m:
+        return _f(m.group(1))
+    for pat, r in KNOWN_R:
+        if re.search(pat, n):
+            return r
+    return None

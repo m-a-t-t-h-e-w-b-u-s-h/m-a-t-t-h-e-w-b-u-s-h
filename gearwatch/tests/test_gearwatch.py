@@ -562,3 +562,37 @@ def test_boots_b2_b3(cfg, name, expected):
 
 def test_zero_price_is_ignored():
     assert parse_price("0,00 zł") is None and parse_price(0) is None
+
+
+
+def test_temperature_filter_requires_known_values(cfg):
+    from gw.query import temp_ok
+    bag = cfg.subcategory("spiwory/inne")
+    assert temp_ok(bag, {}, -4) is False                       # nieznana temp. komfortu -> ukryty
+    assert temp_ok(bag, {"temp_komfortu_c": 17}, -4) is False  # np. Superlight (+17)
+    assert temp_ok(bag, {"temp_komfortu_c": -7}, -4) is True
+    mat = cfg.subcategory("karimaty/inne")
+    assert temp_ok(mat, {}, -4) is False
+    assert temp_ok(mat, {"r_value": 2.3}, -4) is False
+    assert temp_ok(mat, {"r_value": 4.5}, -4) is True
+    assert temp_ok(bag, {}, None) is True                       # bez filtra nic nie ukrywamy
+
+
+@pytest.mark.parametrize("name,expected", [
+    ("Materac Exped Ultra 5R M", 5.0),
+    ("Materac Therm-a-Rest NeoAir XLite NXT Regular", 4.5),
+    ("Materac neoair xtherm nxt regular", 7.3),
+    ("Karimata Therm-a-Rest Z Lite Sol Regular", 2.0),
+    ("Mata samopompująca classic light km3595", None),
+])
+def test_mat_r_value(name, expected):
+    from gw.params import mat_r_value
+    assert mat_r_value(name) == expected
+
+
+def test_bag_length_in_name_too_short(cfg):
+    from gw.params import body_fit_params
+    from gw.query import height_ok
+    sub = cfg.subcategory("spiwory/inne")
+    assert height_ok(cfg, sub, body_fit_params("Śpiwór syntetyczny Outwell Contour Lux (190 cm) - red"))[0] is False
+    assert height_ok(cfg, sub, body_fit_params("Śpiwór syntetyczny Robens Spire II (205 cm)"))[0] is True

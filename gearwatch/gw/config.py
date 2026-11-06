@@ -21,6 +21,7 @@ class Subcategory:
     require_brand: bool = False
     require_name: bool = False
     height_fit: str | None = None   # "spiwor" | "karimata" – dopasowanie do settings.height_cm
+    temp_param: str | None = None   # temp_komfortu_c | r_value – przy filtrze temperatury wartość musi być znana
     params: list[str] = field(default_factory=list)
     wanted: bool = True
     season: str | None = None
@@ -43,6 +44,7 @@ class Category:
     exclude: list[str] = field(default_factory=list)
     exclude_brands: list[str] = field(default_factory=list)
     fallback: str | None = None
+    temp_param: str | None = None
     subcategories: dict[str, Subcategory] = field(default_factory=dict)
 
 
@@ -94,6 +96,7 @@ def load(path: str | Path | None = None) -> Config:
             exclude=_strs(c.get("exclude")),
             exclude_brands=_strs(c.get("exclude_brands")),
             fallback=c.get("fallback"),
+            temp_param=c.get("temp_param"),
         )
         for sname, s in (c.get("subcategories") or {}).items():
             s = s or {}
@@ -107,6 +110,7 @@ def load(path: str | Path | None = None) -> Config:
                 require_brand=bool(s.get("require_brand")),
                 require_name=bool(s.get("require_name")),
                 height_fit=s.get("height_fit"),
+                temp_param=s.get("temp_param", c.get("temp_param")),
                 params=s.get("params") or [],
                 wanted=s.get("wanted", True),
                 season=s.get("season"),

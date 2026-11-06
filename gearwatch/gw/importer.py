@@ -13,7 +13,7 @@ from . import db
 from .classify import classify
 from .config import ROOT, Config
 from .extract import Record, extract
-from .params import body_fit_params, detect_gender, extract_params, layers, membrane
+from .params import body_fit_params, detect_gender, extract_params, layers, mat_r_value, membrane
 from .pricing import effective_price
 
 ARCHIVE = ROOT / "data" / "archive"
@@ -139,6 +139,10 @@ def reclassify(con, cfg: Config) -> dict:
         params = extract_params(row["name"], row["description"] or "", specs, sizes)
         params["plec"] = detect_gender(row["name"], row["context"] or "", specs)
         params.update(body_fit_params(row["name"], row["description"] or "", specs, sizes))
+        if "r_value" not in params:
+            r = mat_r_value(row["name"])
+            if r:
+                params["r_value"] = r
         mem = membrane(row["name"], row["description"] or "", specs)
         if mem:
             params["membrana"] = mem

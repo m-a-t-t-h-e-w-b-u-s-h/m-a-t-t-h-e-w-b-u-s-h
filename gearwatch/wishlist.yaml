@@ -294,6 +294,7 @@ categories:
 
   spiwory:
     keywords: [spiwor*, sleeping bag*, quilt*]
+    temp_param: temp_komfortu_c   # przy filtrze temperatury: tylko śpiwory ze znaną temp. komfortu
     exclude: [wkladk*, liner*, dla psa, poduszk*, worek kompres*, pokrowiec*]
     fallback: inne
     subcategories:
@@ -325,6 +326,7 @@ categories:
 
   karimaty:
     keywords: [karimat*, mata samopomp*, materac*, podkladk*, sleeping pad*, pad]
+    temp_param: r_value           # przy filtrze temperatury: tylko maty ze znanym, wystarczającym R
     exclude: [crash*, materac dmuchany do basenu, pompk*, poduszk*, lata*, zestaw naprawczy]
     fallback: inne
     subcategories:

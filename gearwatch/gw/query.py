@@ -131,12 +131,31 @@ def filters_ok(sub: Subcategory, params: dict) -> bool:
     return True
 
 
+def required_r(t: float) -> float:
+    """Orientacyjne minimalne R-value maty dla temperatury nocy (°C)."""
+    if t >= 10:
+        return 1.0
+    if t >= 0:
+        return 2.0
+    if t >= -10:
+        return 4.0
+    if t >= -20:
+        return 5.0
+    return 6.0
+
+
 def temp_ok(sub: Subcategory, params: dict, t: float | None) -> bool:
     if t is None:
         return True
     if sub.temp and not (sub.temp[0] <= t <= sub.temp[1]):
         return False
     comfort = params.get("temp_komfortu_c")
+    if sub.temp_param == "temp_komfortu_c":
+        # przy wpisanej temperaturze pokazujemy tylko śpiwory ze ZNANĄ temperaturą komfortu
+        return isinstance(comfort, (int, float)) and comfort <= t
+    if sub.temp_param == "r_value":
+        r = params.get("r_value")
+        return isinstance(r, (int, float)) and r >= required_r(t)
     return not (isinstance(comfort, (int, float)) and comfort > t)
 
 
