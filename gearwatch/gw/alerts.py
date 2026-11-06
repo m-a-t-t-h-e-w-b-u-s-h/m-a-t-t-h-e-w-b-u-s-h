@@ -15,7 +15,7 @@ def pending(con, cfg: Config) -> list[dict]:
     out = []
     for r in latest_rows(con, cfg):
         sub = cfg.subcategory(f"{r['category']}/{r['subcategory']}") if r["category"] else None
-        if not sub or sub.alert_below is None or r["effective"] is None:
+        if not sub or sub.alert_below is None or not r["effective"] or r["effective"] <= 0:
             continue
         if r["effective"] >= sub.alert_below or r["available"] == 0:
             continue

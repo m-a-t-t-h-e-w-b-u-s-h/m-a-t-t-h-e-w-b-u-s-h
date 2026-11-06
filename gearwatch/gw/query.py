@@ -221,7 +221,7 @@ def search(con, cfg: Config, q: Query, *, shop=None, max_price=None, in_stock=Fa
             continue
         if in_stock and r["available"] == 0:
             continue
-        if r["effective"] is None or (max_price and r["effective"] > max_price):
+        if not r["effective"] or r["effective"] <= 0 or (max_price and r["effective"] > max_price):
             continue
         if not gender_ok(cfg, params, gender):
             continue

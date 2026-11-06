@@ -353,15 +353,28 @@ categories:
 
   buty:
     keywords: [but, buty, butow, obuwie, boot, boots, trzewik*]
-    exclude: [plecak*, boot pack, pack, torb*, pokrowiec*, wkladk*, sznurowad*, skarpet*, stuptut*]
+    exclude: [plecak*, boot pack, pack, torb*, pokrowiec*, wkladk*, sznurowad*, skarpet*, stuptut*,
+              kapc*, raczk*, naklad*, narciarsk*]
     fallback: inne
     subcategories:
       b2:
-        keywords: [b2, wysokogorsk*, gorskie, alpin*, nepal, trango, aequilibrium, g5, mountain pro, pod raki, rapace]
-        exclude: [b3, b1, podejsciow*]
+        # Raki półautomatyczne. 8a pisze wprost "do raków półautomatycznych" / "pod półautomaty".
+        keywords: [b2, do rakow polautomatycznych, pod polautomaty, polautomat*, pod raki, wysokogorsk*,
+                   ribelle, trango tech, aequilibrium, crow, rapace, kento, zodiac tech, mont blanc, manta tech,
+                   ortles light, ortles edge, ascent evo, pinnacle, garmont tower, breithorn]
+        exclude: [b3, b1, do rakow automatycznych, pod automaty, podejsciow*, trail*, nepal, phantom, olympus,
+                  g-summit, g-tech, karka, mont blanc pro, trango pro, expert pro, mountain pro]
         size: {min: 45.5, max: 46.5}
         params: [waga_g, rozmiary]
         alert_below: 1200
+      b3:
+        # Raki automatyczne. "do raków automatycznych" / "pod automaty", buty ekspedycyjne.
+        keywords: [b3, do rakow automatycznych, pod automaty, ekspedycyjn*, nepal, phantom, olympus mons,
+                   g-summit, g summit, g-tech, karka, 6000, 8000, mont blanc pro, trango pro, trango tower extreme,
+                   expert pro, mountain pro, summit verto]
+        exclude: [b2, b1, polautomat*, pod polautomaty, do rakow polautomatycznych, podejsciow*, trail*]
+        size: {min: 45.5, max: 46.5}
+        params: [waga_g, rozmiary]
       inne:
         keywords: []
         params: [rozmiary]

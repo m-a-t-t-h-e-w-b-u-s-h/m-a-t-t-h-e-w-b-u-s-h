@@ -43,6 +43,11 @@ def canonical_url(url: str) -> str:
 
 
 def parse_price(v) -> float | None:
+    p = _parse_price(v)
+    return p if p and p > 0 else None  # 0,00 zł = błąd odczytu / produkt bez ceny
+
+
+def _parse_price(v) -> float | None:
     if v is None:
         return None
     if isinstance(v, (int, float)):

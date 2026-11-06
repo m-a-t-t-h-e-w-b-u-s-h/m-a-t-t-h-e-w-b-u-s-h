@@ -130,7 +130,7 @@ def test_parse_size():
     ("Przewodnik wspinaczkowy Sokoliki", ("przewodniki", "sokoliki")),
     ("Crashpad Ocun Paddy", ("pozostale", "crashpad")),
     ("Czapka Arc'teryx Rho", ("pozostale", "czapka")),
-    ("Buty wysokogórskie La Sportiva Nepal B2", ("buty", "b2")),
+    ("Buty wysokogórskie La Sportiva Trango Tech B2", ("buty", "b2")),
 ])
 def test_classification(cfg, name, expected):
     r = classify(cfg, name)
@@ -529,3 +529,36 @@ def test_height_fit_180(cfg, name, specs, sizes, expected):
 def test_real_8a_names_batch1(cfg, name, expected):
     r = classify(cfg, name, params=extract_params(name))
     assert f"{r.category}/{r.subcategory}" == expected, r
+
+
+
+@pytest.mark.parametrize("name,expected", [
+    # z prawdziwych list buty/b2 i buty/inne (8a + Skalnik)
+    ("Buty do raków półautomatycznych Salewa Crow GTX - wallnut/fluo orange", "buty/b2"),
+    ("Buty pod półautomaty Arcteryx Acrux LT GTX - black/helios", "buty/b2"),
+    ("Buty do raków półautomatycznych Scarpa Ribelle HD - tonic", "buty/b2"),
+    ("Buty wysokogórskie Scarpa Mont Blanc GTX - tonic/orange", "buty/b2"),
+    ("Buty mont blanc gtx-tonic-orange", "buty/b2"),
+    ("Buty wysokogórskie La Sportiva Aequilibrium Speed GTX - black/yellow", "buty/b2"),
+    ("Buty trekkingowe wysokie La Sportiva Trango Tech Leather GTX - black/yellow", "buty/b2"),
+    ("Buty do raków automatycznych Scarpa Mont Blanc Pro GTX - tonic", "buty/b3"),
+    ("Buty do raków automatycznych Zamberlan Expert Pro GTX RR - green", "buty/b3"),
+    ("Buty pod automaty Zamberlan Mountain Pro EVO GTX RR PU - blk/org", "buty/b3"),
+    ("Buty La Sportiva Nepal Extreme - yellow", "buty/b3"),
+    ("Buty nepal evo gtx-yellow", "buty/b3"),
+    ("Buty wysokogórskie Scarpa Phantom 6000 HD - black/bright orange", "buty/b3"),
+    ("Buty wysokogórskie La Sportiva Olympus Mons Pro - yellow/black", "buty/b3"),
+    ("Buty wysokogórskie Zamberlan 6000 Karka EVO RR PU - orange/black", "buty/b3"),
+    ("Buty trekkingowe męskie The North Face Verto Alpine Mid GORE-TEX - hero blue/tnf", "buty/inne"),
+    ("Buty trailowe Dachstein Delta Ascent GTX - black", "buty/inne"),
+    ("Kapcie puchowe Pajak Moon Boots - black", "None/None"),
+    ("Raczki na buty Climbing Technology/SKYLOTEC Ice Traction Plus - 35-37", "None/None"),
+    ("Nakładki na buty Nortec Street", "None/None"),
+])
+def test_boots_b2_b3(cfg, name, expected):
+    r = classify(cfg, name, params=extract_params(name))
+    assert f"{r.category}/{r.subcategory}" == expected, r
+
+
+def test_zero_price_is_ignored():
+    assert parse_price("0,00 zł") is None and parse_price(0) is None
