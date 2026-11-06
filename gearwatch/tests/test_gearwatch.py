@@ -508,3 +508,24 @@ def test_height_fit_180(cfg, name, specs, sizes, expected):
     from gw.query import height_ok
     sub = cfg.subcategory("karimaty/inne" if name.startswith("Materac") else "spiwory/zimowe")
     assert height_ok(cfg, sub, body_fit_params(name, "", specs, sizes))[0] is expected
+
+
+
+@pytest.mark.parametrize("name,expected", [
+    # pierwsza partia unknown z 8a
+    ("Czekan Salewa Alpine-Tec Hammer - night/black", "czekany/turystyczne"),
+    ("Czekan lodowy Grivel North Machine Ice+Simple Vario - summit yellow", "czekany/techniczne"),
+    ("Czekan turystyczny Blue Ice Akila Adze Ice Axe - patrol red", "czekany/turystyczne"),
+    ("Czekan turystyczny Petzl Gully Hammer - orange", "czekany/turystyczne"),
+    ("Ekspres wspinaczkowy Camp Nano 22 Express KS 18 cm", "ekspresy/gorskie"),
+    ("Zestaw karabinków wspinaczkowych Ocun Hawk Wire 6-pack - red/blue/grn", "karabinki/gorskie"),
+    ("Kurtka adidas TERREX Techrock GORE-TEX WINDSTOPPER Hooded Jacket - sha", "kurtki/softshell"),
+    ("Raki Petzl Irvis Hybrid LeverLock Universal", "raki/polautomatyczne"),
+    ("Raki automatyczne Blue Ice Harfang Alpine Hybrid - black", "raki/automatyczne"),
+    ("Raki skiturowe Edelrid Nemo Hybrid Auto - oasis icemint", "raki/automatyczne"),
+    ("Mata samopompująca Robens Polarshield 100 - navy", "karimaty/inne"),
+    ("Plecak Osprey MountainBound Boot Pack - black", "plecaki/inne"),
+])
+def test_real_8a_names_batch1(cfg, name, expected):
+    r = classify(cfg, name, params=extract_params(name))
+    assert f"{r.category}/{r.subcategory}" == expected, r

@@ -71,7 +71,7 @@ categories:
       gorskie:
         # zwykłe (bez zamka) do ekspresów do wspinania górskiego
         keywords: [nano, oz, micro*, mini*, miniwire, ultralight, alpin*, gorsk*, ange, helium, phantom, wire, wg,
-                   wiregate, wire gate, wildwire, nineteen g, fly-weight, flyweight, lime w]
+                   wiregate, wire gate, wildwire, nineteen g, fly-weight, flyweight, lime w, hawk wire]
         exclude: [lite wire, litewire, hotwire, lock, screw*, zakrec*, hms, sgl, tgl, bgl, 2lock, 3lock, tg, twin gate]
         params: [waga_g]
       inne:
@@ -105,7 +105,7 @@ categories:
         # pełne zamki (keylock/KS, proste/gięte) – modele z listingu Skalnika
         keywords: [sport*, hotforge, sportiva, bulldog, freino, mystic, djinn, spirit, session, orbit, photon, lime,
                    hawk, keylock, ks, str/bnt, bent, steel, axess]
-        exclude: [wire*, hotwire, litewire, wildwire, wildhybrid, alpin*, alpine, dyneema]
+        exclude: [wire*, hotwire, litewire, wildwire, wildhybrid, alpin*, alpine, dyneema, nano]
         params: [dlugosc_cm, waga_g]
       gorskie:
         # zamki drutowe / alpinistyczne
@@ -123,13 +123,13 @@ categories:
     fallback: inne
     subcategories:
       turystyczne:
-        keywords: [turyst*, lodowc*, glacier, raven, summit, alpin*, trekking*, air tech, neve, corsa,
+        keywords: [turyst*, lodowc*, glacier, raven, summit evo, alpin*, trekking*, air tech, neve, corsa,
                    g zero, g1, ghost, ortles]
         params: [dlugosc_cm, waga_g]
         alert_below: 300
       techniczne:
         keywords: [technicz*, do lodu, lodospad*, ice tool*, dziab*, nomic, ergo, quark, fuel, viper, x-dream, north machine, hybrid,
-                   x monster, x-monster, adze, hammer]
+                   x monster, x-monster, lodowy, lodowe]
         params: [waga_g, ksztalt_rekojesci]
       inne:
         # model bez jednoznacznego typu – widoczny w wynikach; typ rozstrzygnie strona produktu
@@ -142,17 +142,19 @@ categories:
     fallback: inne
     subcategories:
       polautomatyczne:
-        keywords: [polautomat*, pol-automat*, pol automat*, semi-automatic, semiautomatic, semi, hybrid*, hybryd*, combi,
-                   dual-matic, dualmatic, clip]
+        keywords: [polautomat*, pol-automat*, pol automat*, semi-automatic, semiautomatic, semi, combi,
+                   dual-matic, dualmatic, clip, leverlock universal]
         params: [liczba_zebow, waga_g]
         alert_below: 450
       automatyczne:
         keywords: [automat*, automatic, step-in, stepin, auto, cramp-o-matic, new-matic, newmatic, leverlock]
-        exclude: [polautomat*, pol-automat*, pol automat*, semi-automatic, semiautomatic, semi, dual-matic, dualmatic]
+        exclude: [polautomat*, pol-automat*, pol automat*, semi-automatic, semiautomatic, semi, dual-matic, dualmatic,
+                  leverlock universal]
         params: [liczba_zebow, waga_g]
         wanted: false
       koszykowe:
         keywords: [koszyk*, basket, paskow*, flex*, universal, uniwersal*, classic, new-classic, strap, soft, walk]
+        exclude: [leverlock*, auto, automat*, semi, clip, dual-matic]
         params: [liczba_zebow, waga_g]
         wanted: false
       inne:
@@ -206,7 +208,7 @@ categories:
     subcategories:
       hardshell:
         keywords: [hardshell*, hard shell, gore-tex, goretex, gtx, membran*, przeciwdeszcz*, nieprzemakal*, 3l, 2.5l, 2,5l, pertex shield, futurelight, h2no, dryvent, ascentshell, event]
-        exclude: [softshell*, soft shell, puch*, down]
+        exclude: [softshell*, soft shell, puch*, down, windstopper*, infinium]
         season: całoroczna
         temp: [-20, 15]
         size: {labels: [M, L]}
@@ -251,7 +253,7 @@ categories:
         wanted: false
 
   bluzy:
-    keywords: [bluz*, hoody, hoodie, polar*, koszulk*, longsleeve, t-shirt, bielizn*, kurtka ocieplan*, ocieplacz*]
+    keywords: [bluz*, hoody, hoodie, polar, polarow*, koszulk*, longsleeve, t-shirt, bielizn*, kurtka ocieplan*, ocieplacz*]
     exclude: [kurtk*, jacket*]   # "Kurtka ... hoody" to kurtka, nie bluza
     fallback: inne
     subcategories:
@@ -351,6 +353,7 @@ categories:
 
   buty:
     keywords: [but, buty, butow, obuwie, boot, boots, trzewik*]
+    exclude: [plecak*, boot pack, pack, torb*, pokrowiec*, wkladk*, sznurowad*, skarpet*, stuptut*]
     fallback: inne
     subcategories:
       b2:
