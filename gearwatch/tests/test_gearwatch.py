@@ -213,15 +213,11 @@ def test_sleeping_bag_by_param(cfg):
     assert r.subcategory == "trzysezonowe"
 
 
-def test_gift_card_only_skalnik(cfg):
-    assert classify(cfg, "Karta podarunkowa 200 zł", shop="skalnik").subcategory == "karta_podarunkowa"
-    assert classify(cfg, "Karta podarunkowa 200 zł", shop="8a").category is None
-
-
 def test_removed_items_are_not_wishlist(cfg):
-    for name in ["Jeansy Levi's 527 Bootcut", "Perfumy Azzaro The Most Wanted", "Ścianka wspinaczkowa home wall"]:
+    for name in ["Jeansy Levi's 527 Bootcut", "Perfumy Azzaro The Most Wanted", "Ścianka wspinaczkowa home wall",
+                 "Karta podarunkowa 200 zł", "Dehydrator do żywności"]:
         r = classify(cfg, name, brand="Levi's" if "Levi" in name else "")
-        assert r.subcategory not in ("bootcut_levis", "perfumy", "home_wall")
+        assert r.subcategory not in ("bootcut_levis", "perfumy", "home_wall", "karta_podarunkowa", "dehydrator")
 
 
 # --------------------------------------------------------------- ceny

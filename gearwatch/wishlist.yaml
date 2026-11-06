@@ -373,15 +373,8 @@ categories:
         keywords: [crash*, crash pad, crashpad*, bouldering pad]
         params: [waga_g]
         alert_below: 600
-      dehydrator:
-        keywords: [dehydrat*, suszark* do zywnosci, suszark* do owocow]
-        params: []
       czapka:
         keywords: [czapk*, beanie*, toque]
         brands: [Mammut, Arc'teryx]
         require_brand: true
-        params: []
-      karta_podarunkowa:
-        keywords: [karta podarunkow*, gift card, bon podarunkow*, e-karta]
-        shops: [skalnik]
         params: []
