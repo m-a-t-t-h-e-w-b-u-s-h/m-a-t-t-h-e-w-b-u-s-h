@@ -278,6 +278,7 @@ def layers(name: str, description: str = "", specs: dict | None = None, membrane
 # R-value znanych mat (dane producentów) – używane tylko, gdy nazwa/specyfikacja nie podaje R
 KNOWN_R = [
     (r"xtherm\s+nxt", 7.3), (r"xtherm", 6.9), (r"xlite\s+nxt", 4.5), (r"uberlite", 2.3), (r"z\s?lite\s+sol", 2.0),
+    (r"mondoking", 7.0), (r"basecamp", 6.0), (r"prolite\s+plus", 3.2), (r"prolite\s+apex", 4.0),
 ]
 
 

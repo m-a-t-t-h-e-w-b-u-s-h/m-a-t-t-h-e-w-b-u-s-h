@@ -611,3 +611,29 @@ def test_reclassify_with_length_in_name(con, cfg, tmp_path):
     reclassify(con, cfg)
     params = json.loads(con.execute("SELECT params FROM products").fetchone()["params"])
     assert params["dlugosc_spec_cm"] == 190
+
+
+
+@pytest.mark.parametrize("name,expected", [
+    # prawdziwe nazwy namiotów (Skalnik + 8a)
+    ("Namiot lanshan 1 3s-dark grey", "namioty/trzysezonowe"),
+    ("Namiot lanshan 2 4s -green", "namioty/czterosezonowe"),
+    ("Namiot cloud up 2 pro 20d cnk2350ws020-forest green", "namioty/trzysezonowe"),
+    ("Namiot dwuosobowy Robens Starlight 2 Exp - green", "namioty/trzysezonowe"),
+    ("Namiot 3-osobowy Coleman Darwin 3 - grey/green", "namioty/inne"),
+    ("Namiot awaryjny Lifesystems Ultralight Survival Shelter 2 - red", "None/None"),
+    ("Śledzie do namiotu v-shape 18cm 6 sztuk cnk2650pj014", "None/None"),
+    ("Podłoga pod namiot Nemo Hornet OSMO Footprint 1P - goodnight gray", "None/None"),
+    ("Namiot pop-up 3 automatic nh21zp008-forest green", "None/None"),
+    ("Kieszeń Osprey Poco Changing Pad - black", "None/None"),
+    ("Mata samopompująca Salewa Diadem 3 Season Mat - syrah", "karimaty/trzysezonowe"),
+    ("Mata samopompująca Therm a Rest MondoKing 3D L - marine blue", "karimaty/zimowe"),
+    ("Mata samopompująca Therm a Rest ProLite Plus R - cayenne", "karimaty/trzysezonowe"),
+])
+def test_tents_and_mats_real_names(cfg, name, expected):
+    from gw.params import mat_r_value
+    pr = extract_params(name)
+    if mat_r_value(name):
+        pr["r_value"] = mat_r_value(name)
+    r = classify(cfg, name, params=pr)
+    assert f"{r.category}/{r.subcategory}" == expected, r

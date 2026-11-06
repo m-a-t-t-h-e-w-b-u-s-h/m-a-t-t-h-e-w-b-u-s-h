@@ -273,21 +273,30 @@ categories:
 
   namioty:
     keywords: [namiot*, tent*, tarp*]
+    # akcesoria i schroniska awaryjne to nie namioty
+    exclude: [sledz*, podlog*, footprint*, klej*, impregnat*, palak*, nikwax, seam, awaryjn*, survival, shelter,
+              hamak*, pop-up, popup, markiz*, przedsionek do*, moskitier*]
     fallback: inne
     subcategories:
       trzysezonowe:
-        keywords: [3-sezon*, 3 sezon*, trzysezon*, 3-season, ultralight, ultralekk*, lekk*, trekking*]
-        exclude: [4-sezon*, czterosezon*, zimow*, ekspedyc*]
+        # lekkie trekkingowe; Naturehike pisze sezon w nazwie ("Lanshan 1 3s")
+        keywords: [3s, 3-sezon*, 3 sezon*, trzysezon*, 3-season, ultralight, ultralekk*, lekk*, trekking*, ul,
+                   cloud up, mongar, star river, lanshan, hornet, dragonfly, hubba, elixir, copper spur, tiger wall,
+                   fly creek, starlight, vestis, x-mid, duplex, mesh tent]
+        exclude: [4s, 4-sezon*, czterosezon*, zimow*, ekspedyc*, wyprawow*]
         season: wiosna–jesień
         temp: [-5, 30]
         params: [waga_g, sezon]
       czterosezonowe:
-        keywords: [4-sezon*, 4 sezon*, czterosezon*, 4-season, zimow*, ekspedyc*, wyprawow*]
+        keywords: [4s, 4-sezon*, 4 sezon*, czterosezon*, 4-season, zimow*, ekspedyc*, wyprawow*,
+                   nammatj, kaitum, staika, soulo, jannu, akto, keron, allak, saitaris, trango]
+        exclude: [3s]
         season: zima
         temp: [-30, 10]
         params: [waga_g, sezon]
         alert_below: 2500
       inne:
+        # kempingowe/rodzinne i modele bez oznaczenia sezonu – ukryte
         keywords: []
         params: [waga_g]
         wanted: false
@@ -327,7 +336,8 @@ categories:
   karimaty:
     keywords: [karimat*, mata samopomp*, materac*, podkladk*, sleeping pad*, pad]
     temp_param: r_value           # przy filtrze temperatury: tylko maty ze znanym, wystarczającym R
-    exclude: [crash*, materac dmuchany do basenu, pompk*, poduszk*, lata*, zestaw naprawczy]
+    exclude: [crash*, materac dmuchany do basenu, pompk*, poduszk*, lata*, zestaw naprawczy, kieszen*,
+              changing pad, gapstopper, podkladka ochronn*]
     fallback: inne
     subcategories:
       letnie:
@@ -339,7 +349,7 @@ categories:
       trzysezonowe:
         height_fit: karimata
         param_range: {r_value: {min: 2, max: 3.99}}
-        keywords: [3-sezon*, trzysezon*]
+        keywords: [3-sezon*, trzysezon*, 3 season, 3-season]
         params: [waga_g, r_value]
       zimowe:
         height_fit: karimata
