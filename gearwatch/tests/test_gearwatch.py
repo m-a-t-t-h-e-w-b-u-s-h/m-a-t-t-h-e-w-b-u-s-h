@@ -637,3 +637,20 @@ def test_tents_and_mats_real_names(cfg, name, expected):
         pr["r_value"] = mat_r_value(name)
     r = classify(cfg, name, params=pr)
     assert f"{r.category}/{r.subcategory}" == expected, r
+
+
+
+def test_basket(con, cfg, tmp_path):
+    from gw import webapi
+    _import_all(con, cfg, tmp_path)
+    con.execute("UPDATE prices SET day=date('now')")
+    d = webapi.api_basket(con, cfg, {})
+    rows = {r["key"]: r for r in d["rows"]}
+    # palniki = jedna pozycja; najtańszy z X2 Pro / X1 Pro / X1 (bez kubełka "inne")
+    assert rows["palnik"]["best"]["name"] == "Palnik Fire Maple Polaris X1"
+    assert "palniki/inne" not in rows["palnik"]["paths"]
+    assert rows["karabinki/ekspresowe"]["best"]["effective"] == 41.93
+    assert d["total"] == round(sum(r["best"]["effective"] for r in d["rows"] if r["best"]), 2)
+    assert "palnik" not in d["one_shop"]["skalnik"]["missing"] or rows["palnik"]["by_shop"]["skalnik"] is None
+    d2 = webapi.api_basket(con, cfg, {"include_other": "1"})
+    assert "palniki/inne" in {r["key"]: r for r in d2["rows"]}["palnik"]["paths"]

@@ -22,6 +22,8 @@ class Subcategory:
     require_name: bool = False
     height_fit: str | None = None   # "spiwor" | "karimata" – dopasowanie do settings.height_cm
     temp_param: str | None = None   # temp_komfortu_c | r_value – przy filtrze temperatury wartość musi być znana
+    group: str | None = None        # pozycja koszyka: podkategorie z tą samą grupą = "kupuję jedną z nich"
+    fallback_of: bool = False       # kubełek "inne" (fallback kategorii)
     params: list[str] = field(default_factory=list)
     wanted: bool = True
     season: str | None = None
@@ -111,6 +113,8 @@ def load(path: str | Path | None = None) -> Config:
                 require_name=bool(s.get("require_name")),
                 height_fit=s.get("height_fit"),
                 temp_param=s.get("temp_param", c.get("temp_param")),
+                group=s.get("group", c.get("group")),
+                fallback_of=(sname == c.get("fallback")),
                 params=s.get("params") or [],
                 wanted=s.get("wanted", True),
                 season=s.get("season"),

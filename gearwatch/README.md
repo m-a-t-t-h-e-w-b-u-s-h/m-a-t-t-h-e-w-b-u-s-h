@@ -114,6 +114,14 @@ python web.py --lan      # dodatkowo adres dla telefonu w tym samym Wi-Fi
 Na Windows wystarczy dwukrotnie kliknąć **`start-strona.bat`** (strona) albo
 **`odswiez.bat`** (import nowych zrzutów + alerty).
 
+**Koszyk minimum** – najtańsza pasująca sztuka każdej pozycji wishlisty
+(z Twoimi filtrami płci, rozmiaru i wzrostu) i suma: łącznie z obu sklepów
+oraz „wszystko w jednym sklepie” z listą braków. Pozycje odznaczasz
+pola wyboru (zapamiętywane). Podkategorie z tym samym `group` w
+`wishlist.yaml` liczą się jako jedna rzecz (np. jeden palnik, jeden śpiwór,
+jedne buty B2/B3); kubełki „inne” są pomijane, chyba że zaznaczysz
+„licz też kubełki inne”.
+
 Zakładki **Wyniki / Najlepsze oferty / Do poprawy / Pokrycie**, listy
 kategorii, podkategorii i sklepu, przyciski płci, pola ceny max, temperatury
 i rabatu, „Historia ceny” z wykresem. Strona czyta tę samą bazę co `find.py`;

@@ -44,8 +44,17 @@ input[type=text] { width: 240px; }
 input[type=number] { width: 92px; }
 label.chk { display: inline-flex; gap: 6px; align-items: center; font-size: 14px; cursor: pointer; padding-bottom: 6px; }
 body:not(.tab-deals) .only-deals { display: none !important; }
+body:not(.tab-basket) .only-basket { display: none !important; }
+body.tab-basket .nobasket { display: none !important; }
+.totals { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 10px; margin-bottom: 14px; }
+.tot { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; }
+.tot .big { font-size: 24px; font-weight: 700; }
+.tot .meta { margin-top: 2px; }
+tr.off td { opacity: .45; }
+td.num { text-align: right; white-space: nowrap; }
 body:not(.show-shell) .shellf { display: none !important; }
 body.tab-unknown .filters, body.tab-coverage .filters { display: none; }
+body.tab-basket .shellf { display: none !important; }
 main { padding: 14px 0 40px; }
 .summary { color: var(--muted); margin: 0 0 10px; font-size: 14px; }
 .list { display: grid; gap: 8px; }
@@ -104,22 +113,23 @@ dialog::backdrop { background: rgba(0,0,0,.4); }
         <button data-tab="search" class="on">Wyniki</button>
         <button data-tab="deals">Najlepsze oferty</button>
         <button data-tab="unknown">Do poprawy</button>
+        <button data-tab="basket">Koszyk minimum</button>
         <button data-tab="coverage">Pokrycie</button>
       </div>
     </div>
     <div class="filters">
-      <label class="f grow"><span>Szukaj (np. „hardshell, -5”, „black diamond”)</span>
+      <label class="f grow nobasket"><span>Szukaj (np. „hardshell, -5”, „black diamond”)</span>
         <input type="text" id="q" placeholder="wpisz i naciśnij Enter"></label>
-      <label class="f"><span>Kategoria</span><select id="cat"><option value="">wszystkie</option></select></label>
-      <label class="f"><span>Podkategoria</span><select id="sub"><option value="">wszystkie</option></select></label>
-      <label class="f"><span>Sklep</span><select id="shop"><option value="">oba</option></select></label>
+      <label class="f nobasket"><span>Kategoria</span><select id="cat"><option value="">wszystkie</option></select></label>
+      <label class="f nobasket"><span>Podkategoria</span><select id="sub"><option value="">wszystkie</option></select></label>
+      <label class="f nobasket"><span>Sklep</span><select id="shop"><option value="">oba</option></select></label>
       <div class="f"><span>Płeć</span>
         <div class="seg" id="plec">
           <button data-v="meskie">Męskie</button><button data-v="damskie">Damskie</button>
           <button data-v="dzieciece">Dziecięce</button><button data-v="wszystkie">Wszystkie</button>
         </div></div>
-      <label class="f"><span>Cena max (zł)</span><input type="number" id="max" min="0" step="10"></label>
-      <label class="f"><span>Temperatura (°C)</span><input type="number" id="temp" step="1"></label>
+      <label class="f nobasket"><span>Cena max (zł)</span><input type="number" id="max" min="0" step="10"></label>
+      <label class="f nobasket"><span>Temperatura (°C)</span><input type="number" id="temp" step="1"></label>
       <label class="f shellf"><span>Membrana</span><select id="membrana"><option value="">dowolna</option>
         <option value="gore-tex">Gore-Tex (każdy)</option></select></label>
       <label class="f shellf"><span>Warstwy</span><select id="warstwy"><option value="">dowolne</option>
@@ -129,7 +139,8 @@ dialog::backdrop { background: rgba(0,0,0,.4); }
       <label class="f only-deals"><span>Rabat min (%)</span><input type="number" id="min_discount" min="0" max="95" step="5"></label>
       <label class="chk only-deals"><input type="checkbox" id="per_sub"> najlepsza w każdej podkategorii</label>
       <label class="chk"><input type="checkbox" id="in_stock"> tylko dostępne</label>
-      <label class="chk"><input type="checkbox" id="all"> pokaż ukryte (HMS, inne)</label>
+      <label class="chk nobasket"><input type="checkbox" id="all"> pokaż ukryte (HMS, inne)</label>
+      <label class="chk only-basket"><input type="checkbox" id="include_other"> licz też kubełki „inne” (np. dowolny palnik, śpiwór bez znanej temp.)</label>
       <label class="chk"><input type="checkbox" id="stale"> starsze ceny</label>
       <button class="btn" id="reset">Wyczyść</button>
     </div>
@@ -164,7 +175,8 @@ function state() {
   return { tab: TAB, q: $("q").value, cat: $("cat").value, sub: $("sub").value, shop: $("shop").value,
            plec: GENDER, max: $("max").value, temp: $("temp").value, min_discount: $("min_discount").value,
            membrana: $("membrana").value, warstwy: $("warstwy").value, wodo_min: $("wodo_min").value, strict: $("strict").checked,
-           per_sub: $("per_sub").checked, in_stock: $("in_stock").checked, all: $("all").checked, stale: $("stale").checked };
+           per_sub: $("per_sub").checked, in_stock: $("in_stock").checked, all: $("all").checked, stale: $("stale").checked,
+           include_other: $("include_other").checked };
 }
 
 function fillSubs() {
@@ -222,6 +234,9 @@ async function load() {
         + (TAB === "deals" ? " · rabat liczony od ceny katalogowej (Skalnik: z Twoim −30%), promo = przecena sklepu" : "");
       out.innerHTML = d.items.length ? `<div class="list">${d.items.map(card).join("")}</div>`
                                       : `<div class="empty">Brak dopasowań. Spróbuj zmienić filtry albo zaznacz „starsze ceny”.</div>`;
+    } else if (TAB === "basket") {
+      const d = await api("/api/basket", {plec: st.plec, in_stock: st.in_stock, stale: st.stale, include_other: st.include_other});
+      BASKET = d; renderBasket();
     } else if (TAB === "unknown") {
       const d = await api("/api/unknown");
       sum.textContent = `${d.total} produktów bez jednoznacznej podkategorii – popraw reguły w wishlist.yaml i uruchom refresh.py --reclassify`;
@@ -245,6 +260,46 @@ async function load() {
     sum.innerHTML = `<span class="err">Błąd: ${esc(e.message)}</span>`;
     out.innerHTML = "";
   }
+}
+
+let BASKET = null;
+const offKeys = () => new Set(store.get().basket_off || []);
+function toggleRow(key) {
+  const st = store.get(), off = new Set(st.basket_off || []);
+  off.has(key) ? off.delete(key) : off.add(key);
+  st.basket_off = [...off]; store.set(st); renderBasket();
+}
+function renderBasket() {
+  const d = BASKET, off = offKeys(), out = $("out"), sum = $("summary");
+  const on = d.rows.filter(r => !off.has(r.key));
+  const total = on.reduce((t, r) => t + (r.best ? r.best.effective : 0), 0);
+  const split = Object.fromEntries(d.shops.map(s => [s, on.reduce((t, r) => t + (r.best && r.best.shop === s ? r.best.effective : 0), 0)]));
+  const one = Object.fromEntries(d.shops.map(s => [s, {
+    total: on.reduce((t, r) => t + (r.by_shop[s] ? r.by_shop[s].effective : 0), 0),
+    missing: on.filter(r => !r.by_shop[s]).map(r => r.label)}]));
+  const missing = on.filter(r => !r.best).map(r => r.label);
+  sum.textContent = `${on.length} z ${d.rows.length} pozycji wishlisty · najtańsza pasująca sztuka każdej (Twoje filtry: płeć, rozmiar, wzrost) · odznacz, czego nie chcesz liczyć`;
+  out.innerHTML = `<div class="totals">
+      <div class="tot"><div class="meta">Minimum łącznie (z obu sklepów)</div><div class="big">${pln(total)}</div>
+        <div class="meta">${d.shops.map(s => `${esc(s)}: ${pln(split[s])}`).join(" · ")}</div>
+        ${missing.length ? `<div class="meta err">bez oferty: ${esc(missing.join(", "))}</div>` : ""}</div>
+      ${d.shops.map(s => `<div class="tot"><div class="meta">Wszystko w ${esc(s)}</div><div class="big">${pln(one[s].total)}</div>
+        <div class="meta">${one[s].missing.length ? `brak w sklepie: ${esc(one[s].missing.join(", "))}` : "wszystkie pozycje dostępne"}</div></div>`).join("")}
+    </div>
+    <div class="tablewrap"><table><tr><th></th><th>Pozycja</th><th>Najtańszy pasujący produkt</th>${d.shops.map(s => `<th class="num">${esc(s)}</th>`).join("")}<th class="num">Opcji</th></tr>
+    ${d.rows.map(r => { const b = r.best, isOff = off.has(r.key);
+      return `<tr class="${isOff ? "off" : ""}"><td><input type="checkbox" ${isOff ? "" : "checked"} onchange='toggleRow(${JSON.stringify(r.key)})'></td>
+        <td><b>${esc(r.label)}</b>${r.paths.length > 1 ? `<div class="meta">${esc(r.paths.join(", "))}</div>` : ""}</td>
+        <td>${b ? `<a class="name" href="${esc(b.url)}" target="_blank" rel="noopener">${esc(b.name)}</a>
+              <div class="meta">${esc(b.shop)} · ${esc(b.path)}${b.params ? " · " + esc(b.params) : ""}</div>
+              <button class="btn" style="margin-top:4px" onclick="history_(${b.id})">Historia ceny</button>`
+            : `<span class="meta">brak pasujących produktów</span>`}</td>
+        ${d.shops.map(s => { const x = r.by_shop[s];
+          return `<td class="num">${x ? (b && x.id === b.id ? `<b>${pln(x.effective)}</b>` : pln(x.effective)) : `<span class="meta">—</span>`}</td>`; }).join("")}
+        <td class="num meta">${r.count}</td></tr>`; }).join("")}
+    </table></div>
+    <p class="meta" style="margin-top:10px">Liczę jedną sztukę na pozycję (np. jeden karabinek, jeden ekspres – zestawy też się liczą, jeśli są najtańsze).
+      Ceny efektywne: Skalnik z Twoim −30% od ceny katalogowej.</p>`;
 }
 
 function card(it) {
@@ -301,12 +356,12 @@ async function init() {
   setGender(saved.plec || META.gender);
   for (const k of ["q", "cat", "shop", "max", "temp", "min_discount", "membrana", "warstwy", "wodo_min"]) if (saved[k] != null) $(k).value = saved[k];
   fillSubs(); if (saved.sub) $("sub").value = saved.sub;
-  for (const k of ["per_sub", "in_stock", "all", "stale", "strict"]) $(k).checked = !!saved[k];
+  for (const k of ["per_sub", "in_stock", "all", "stale", "strict", "include_other"]) $(k).checked = !!saved[k];
 
   $("tabs").addEventListener("click", e => e.target.dataset.tab && setTab(e.target.dataset.tab));
   $("plec").addEventListener("click", e => { if (e.target.dataset.v) { setGender(e.target.dataset.v); load(); } });
   $("cat").addEventListener("change", () => { fillSubs(); load(); });
-  for (const k of ["sub", "shop", "per_sub", "in_stock", "all", "stale", "membrana", "warstwy", "strict"]) $(k).addEventListener("change", load);
+  for (const k of ["sub", "shop", "per_sub", "in_stock", "all", "stale", "membrana", "warstwy", "strict", "include_other"]) $(k).addEventListener("change", load);
   for (const k of ["max", "temp", "min_discount", "wodo_min"]) $(k).addEventListener("input", schedule);
   $("q").addEventListener("keydown", e => { if (e.key === "Enter") load(); });
   $("q").addEventListener("input", schedule);

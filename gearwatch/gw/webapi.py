@@ -130,3 +130,47 @@ def api_history(con, cfg: Config, args: dict) -> dict:
     points = [dict(r) for r in con.execute(
         "SELECT day, effective, price, catalog_price FROM prices WHERE product_id=? ORDER BY day", (pid,))]
     return {"product": dict(p), "points": points}
+
+
+def api_basket(con, cfg: Config, args: dict) -> dict:
+    """Najtańszy pasujący produkt dla każdej pozycji wishlisty + suma (łącznie i w jednym sklepie)."""
+    include_other = _b(args.get("include_other"))
+    selectors = [(cn, sn, True) for cn, c in cfg.categories.items() for sn, sub in c.subcategories.items()
+                 if sub.wanted and (include_other or not sub.fallback_of)]
+    q = Query(selectors=selectors)
+    results, _ = search(con, cfg, q, shop=None, in_stock=_b(args.get("in_stock")),
+                        include_stale=_b(args.get("stale")), gender=args.get("plec") or None,
+                        include_unwanted=False)
+    shops = list(cfg.shops)
+    items: dict[str, dict] = {}
+    order = []
+    for cn, c in cfg.categories.items():
+        for sn, sub in c.subcategories.items():
+            if not sub.wanted or (sub.fallback_of and not include_other):
+                continue
+            key = sub.group or sub.path
+            if key not in items:
+                items[key] = {"key": key, "label": sub.group or sub.path, "paths": [], "best": None,
+                              "by_shop": {sh: None for sh in shops}, "count": 0}
+                order.append(key)
+            items[key]["paths"].append(sub.path)
+    for x in results:
+        key = x["sub"].group or x["sub"].path
+        it = items.get(key)
+        if it is None:
+            continue
+        it["count"] += 1
+        d = _item(x)
+        if it["best"] is None or d["effective"] < it["best"]["effective"]:
+            it["best"] = d
+        cur = it["by_shop"].get(d["shop"])
+        if cur is None or d["effective"] < cur["effective"]:
+            it["by_shop"][d["shop"]] = d
+    rows = [items[k] for k in order]
+    total = round(sum(r["best"]["effective"] for r in rows if r["best"]), 2)
+    split = {sh: round(sum(r["best"]["effective"] for r in rows if r["best"] and r["best"]["shop"] == sh), 2)
+             for sh in shops}
+    one_shop = {sh: {"total": round(sum(r["by_shop"][sh]["effective"] for r in rows if r["by_shop"][sh]), 2),
+                     "missing": [r["label"] for r in rows if r["by_shop"][sh] is None]} for sh in shops}
+    return {"rows": rows, "total": total, "split": split, "one_shop": one_shop, "shops": shops,
+            "missing": [r["label"] for r in rows if not r["best"]]}

@@ -29,6 +29,7 @@ ROUTES = {
     "/api/unknown": webapi.api_unknown,
     "/api/coverage": webapi.api_coverage,
     "/api/history": webapi.api_history,
+    "/api/basket": webapi.api_basket,
 }
 
 

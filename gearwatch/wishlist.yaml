@@ -21,6 +21,8 @@
 #   param_range   – klasyfikacja po parametrze, np. {temp_komfortu_c: {max: -5}}
 #   shops         – ograniczenie do sklepów
 #   alert_below   – próg alertu na Telegram (cena efektywna, zł)
+#   group         – (też na poziomie kategorii) pozycja w „Koszyku minimum”: podkategorie z tą samą
+#                   grupą liczą się jako jedna rzecz do kupienia (np. jeden palnik z X2 Pro / X1 Pro / X1)
 # Pola kategorii: keywords, exclude, exclude_brands, fallback (nazwa podkategorii,
 # do której trafiają produkty bez żadnego dopasowania zamiast do `unknown`).
 # Kategoria bez `keywords` (np. pozostale) dopasowuje się przez swoje podkategorie.
@@ -118,6 +120,7 @@ categories:
         params: [dlugosc_cm, waga_g]
 
   czekany:
+    group: czekan   # koszyk minimum: jedna sztuka z tej kategorii
     keywords: [czekan*, ice axe, ice tool*, dziab*]
     exclude: [oslon*, axe guard, ochraniacz*, smycz*, leash, pokrowiec*, kabur*]
     fallback: inne
@@ -137,6 +140,7 @@ categories:
         params: [dlugosc_cm, waga_g]
 
   raki:
+    group: raki   # koszyk minimum: jedna sztuka z tej kategorii
     keywords: [raki, rakow, crampon*]
     exclude: [raczki, raczek, nakladki antyposlizg*, but, buty, torb*, pokrowiec*, ochraniacz*, oslon*, antysniegow*]
     fallback: inne
@@ -162,6 +166,7 @@ categories:
         params: [liczba_zebow, waga_g]
 
   palniki:
+    group: palnik   # koszyk minimum: jedna sztuka z tej kategorii
     keywords: [palnik*, kuchenk*, stove*]
     fallback: inne
     subcategories:
@@ -184,6 +189,7 @@ categories:
         params: [waga_g, czas_gotowania_min]
 
   plecaki:
+    group: plecak   # koszyk minimum: jedna sztuka z tej kategorii
     keywords: [plecak*, backpack*]
     fallback: inne
     subcategories:
@@ -272,6 +278,7 @@ categories:
         wanted: false
 
   namioty:
+    group: namiot   # koszyk minimum: jedna sztuka z tej kategorii
     keywords: [namiot*, tent*, tarp*]
     # akcesoria i schroniska awaryjne to nie namioty
     exclude: [sledz*, podlog*, footprint*, klej*, impregnat*, palak*, nikwax, seam, awaryjn*, survival, shelter,
@@ -302,6 +309,7 @@ categories:
         wanted: false
 
   spiwory:
+    group: śpiwór   # koszyk minimum: jedna sztuka z tej kategorii
     keywords: [spiwor*, sleeping bag*, quilt*]
     temp_param: temp_komfortu_c   # przy filtrze temperatury: tylko śpiwory ze znaną temp. komfortu
     exclude: [wkladk*, liner*, dla psa, poduszk*, worek kompres*, pokrowiec*]
@@ -334,6 +342,7 @@ categories:
         params: [waga_g, temp_komfortu_c]
 
   karimaty:
+    group: karimata   # koszyk minimum: jedna sztuka z tej kategorii
     keywords: [karimat*, mata samopomp*, materac*, podkladk*, sleeping pad*, pad]
     temp_param: r_value           # przy filtrze temperatury: tylko maty ze znanym, wystarczającym R
     exclude: [crash*, materac dmuchany do basenu, pompk*, poduszk*, lata*, zestaw naprawczy, kieszen*,
@@ -364,6 +373,7 @@ categories:
         params: [waga_g, r_value]
 
   buty:
+    group: buty wysokogórskie (B2/B3)   # koszyk minimum: jedna sztuka z tej kategorii
     keywords: [but, buty, butow, obuwie, boot, boots, trzewik*]
     exclude: [plecak*, boot pack, pack, torb*, pokrowiec*, wkladk*, sznurowad*, skarpet*, stuptut*,
               kapc*, raczk*, naklad*, narciarsk*]
