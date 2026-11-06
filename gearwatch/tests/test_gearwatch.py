@@ -596,3 +596,18 @@ def test_bag_length_in_name_too_short(cfg):
     sub = cfg.subcategory("spiwory/inne")
     assert height_ok(cfg, sub, body_fit_params("Śpiwór syntetyczny Outwell Contour Lux (190 cm) - red"))[0] is False
     assert height_ok(cfg, sub, body_fit_params("Śpiwór syntetyczny Robens Spire II (205 cm)"))[0] is True
+
+
+
+def test_reclassify_with_length_in_name(con, cfg, tmp_path):
+    # regresja: "(190 cm)" w nazwie śpiwora wywracało refresh.py --reclassify
+    cap = {"url": "https://8a.pl/spiwor-x", "captured_at": "2099-01-01T00:00:00Z",
+           "jsonld": [json.dumps({"@type": "Product", "name": "Śpiwór syntetyczny Outwell Contour Lux (190 cm) - red",
+                                  "offers": {"price": "249.99"}})],
+           "html": "<html><head><meta property='og:type' content='product'></head></html>"}
+    f = tmp_path / "gearwatch-8a.pl-spiwor.json"
+    f.write_text(json.dumps(cap))
+    import_file(con, cfg, f, archive=False)
+    reclassify(con, cfg)
+    params = json.loads(con.execute("SELECT params FROM products").fetchone()["params"])
+    assert params["dlugosc_spec_cm"] == 190

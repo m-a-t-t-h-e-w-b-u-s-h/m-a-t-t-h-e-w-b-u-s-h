@@ -118,11 +118,6 @@ def extract_params(name: str, description: str = "", specs: dict | None = None, 
 
     p["typ_zamka"] = _gate(_spec(specs, "zamek", "zamk", "gate") or full)
 
-    nn = normalize(name)
-    if re.search(r"spiwor|sleeping bag|quilt|karimat|mata|materac|pad", nn):
-        m2 = re.search(r"(?<![\d.,])(1[5-9]\d|2[0-3]\d)\s*cm", nn)  # 8a: "Śpiwór ... (190 cm)"
-        if m2:
-            out["dlugosc_spec_cm"] = float(m2.group(1))
     dl = _spec(specs, "dlugosc", "length")
     p["dlugosc_cm"] = _first(NUM + r"\s*cm\b", dl or n) or _first(NUM + r"\s*cm\b", full)
 
