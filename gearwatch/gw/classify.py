@@ -45,7 +45,9 @@ def _brand_matches(t: Texts, brands) -> bool:
 
 def _score(t: Texts, keywords, exclude, params: dict | None = None, param_range=None, brands=None):
     """Zwraca (punkty, trafienia) albo (None, powód) przy wykluczeniu."""
-    excl = matching_keywords(t.name, exclude) + matching_keywords(t.context, exclude)
+    # tylko nazwa: kontekst (breadcrumbs listingu) dotyczy całej strony, więc
+    # wykluczenie w nim wycinałoby wszystkie produkty naraz
+    excl = matching_keywords(t.name, exclude)
     if excl:
         return None, [f"wykluczenie: {', '.join(sorted(set(excl)))}"]
     score, hits = 0, []

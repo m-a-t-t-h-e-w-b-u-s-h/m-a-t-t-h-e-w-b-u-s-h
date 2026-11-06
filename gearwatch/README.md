@@ -84,7 +84,7 @@ Reguły są w `wishlist.yaml` (opis składni na początku pliku). Każdy produkt
 dostaje kategorię i podkategorię na podstawie nazwy (3 pkt za słowo kluczowe),
 breadcrumbs/tytułu listingu (2 pkt), opisu i specyfikacji (1 pkt), marki (+1)
 i parametrów (`param_range`, +3 – np. śpiwory po temperaturze komfortu,
-karimaty po R-value). `exclude` dyskwalifikuje regułę.
+karimaty po R-value). `exclude` (sprawdzane tylko w nazwie) dyskwalifikuje regułę.
 
 Gdy dwie podkategorie mają podobny wynik (różnica < `subcategory_margin`) albo
 żadna nie pasuje, produkt dostaje `subcategory: unknown`:

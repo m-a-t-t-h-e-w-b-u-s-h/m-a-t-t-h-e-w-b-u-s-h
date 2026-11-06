@@ -6,7 +6,7 @@
 #
 # Punktacja: trafienie w nazwie = 3 pkt, w kontekście (breadcrumbs / tytuł listingu) = 2,
 # w opisie/specyfikacji = 1, pasująca marka = +1, param_range spełniony = +3.
-# `exclude` sprawdzane jest w nazwie i kontekście – trafienie dyskwalifikuje regułę.
+# `exclude` sprawdzane jest tylko w nazwie produktu – trafienie dyskwalifikuje regułę.
 #
 # Pola podkategorii:
 #   keywords, exclude, brands, require_brand (true = marka musi być z listy `brands`)

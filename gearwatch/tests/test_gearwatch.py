@@ -125,6 +125,14 @@ def test_accessory_carabiner_is_not_wishlist(cfg):
     assert classify(cfg, "KARABINEK SPRZĘTOWY MINO Z AKCESORIAMI").category is None
 
 
+@pytest.mark.parametrize("ctx", ["Akcesoria wspinaczkowe > Karabinki", "Sprzęt wspinaczkowy > Karabinki",
+                                 "Strona główna > Wspinaczka > Akcesoria > Karabinki i akcesoria"])
+def test_context_does_not_trigger_exclusions(cfg, ctx):
+    # regresja: exclude [akcesori*] w kontekście wycinał cały listing Skalnika
+    r = classify(cfg, "KARABINEK LITEWIRE", ctx)
+    assert (r.category, r.subcategory) == ("karabinki", "ekspresowe")
+
+
 def test_excluded_brand(cfg):
     r = classify(cfg, "Kurtka Forclaz MT500 hardshell", brand="Forclaz")
     assert r.category != "kurtki"
