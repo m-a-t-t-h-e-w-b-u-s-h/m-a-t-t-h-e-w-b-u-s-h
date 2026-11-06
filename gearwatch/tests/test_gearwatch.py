@@ -94,6 +94,7 @@ def test_parse_size():
     ("KARABINEK ROCHA SCREW-ORANGE", ("karabinki", "hms")),
     ("KARABINEK LIME WG -ANTHRACITE-BLUE", ("karabinki", "gorskie")),
     ("KARABINEK ELECTRON STRAIGHT GATE", ("karabinki", "ekspresowe")),
+    ("KARABINEK OVO PRO", ("karabinki", "inne")),
     ("Ekspres Petzl Spirit Express Sport 12 cm", ("ekspresy", "sportowe")),
     ("Ekspres alpinistyczny Black Diamond OZ Alpine 60 cm", ("ekspresy", "gorskie")),
     ("Kości Wild Country Rocks zestaw 1-10", ("kosci_mechaniki", "kosci")),

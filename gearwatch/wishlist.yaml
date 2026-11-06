@@ -44,6 +44,7 @@ categories:
   karabinki:
     keywords: [karabin*, carabiner*]
     exclude: [quickdraw*, zestaw ekspres*, sprzetow*, akcesori*]
+    fallback: inne
     subcategories:
       ekspresowe:
         # sport, lite wire
@@ -61,6 +62,11 @@ categories:
         keywords: [nano, oz, micro*, mini*, miniwire, ultralight, alpin*, gorsk*, ange, helium, phantom, wire, wg, wiregate, wire gate]
         exclude: [lite wire, litewire, hotwire, lock, screw*, zakrec*, hms]
         params: [waga_g]
+      inne:
+        # owale, sprzętowe itp. – bez dopasowania do powyższych; ukryte w wynikach
+        keywords: []
+        params: [waga_g]
+        wanted: false
 
   kosci_mechaniki:
     keywords: [kosc*, stoper*, nut, nuts, offset*, friend*, kam, kamy, kamow, cam, cams, camalot*, mikrokam*, mechanik*]
