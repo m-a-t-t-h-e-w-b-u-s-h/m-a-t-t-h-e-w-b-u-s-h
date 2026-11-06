@@ -434,3 +434,14 @@ def test_gender_filter_default_men(cfg):
 def test_real_skalnik_names_batch2(cfg, name, expected):
     r = classify(cfg, name, params=extract_params(name))
     assert f"{r.category}/{r.subcategory}" == expected, r
+
+
+
+@pytest.mark.parametrize("name,expected", [
+    ("Materac neoair topo luxe regular-balsam", "karimaty"),
+    ("Kurtka neutrino pro hoody women-tempest blue na zimę w góry", "kurtki"),
+    ("Puchowa kurtka ciepła neutrino pro hoody women-black", "kurtki"),
+    ("Przewodnik wspinaczkowy Sokoliki", "przewodniki"),
+])
+def test_real_skalnik_names_batch3(cfg, name, expected):
+    assert classify(cfg, name, params=extract_params(name)).category == expected

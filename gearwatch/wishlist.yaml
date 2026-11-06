@@ -249,6 +249,7 @@ categories:
 
   bluzy:
     keywords: [bluz*, hoody, hoodie, polar*, koszulk*, longsleeve, t-shirt, bielizn*, kurtka ocieplan*, ocieplacz*]
+    exclude: [kurtk*, jacket*]   # "Kurtka ... hoody" to kurtka, nie bluza
     fallback: inne
     subcategories:
       syntetyczne:
@@ -353,7 +354,7 @@ categories:
         wanted: false
 
   przewodniki:
-    keywords: [przewodnik*, topo*, guidebook*, guide book]
+    keywords: [przewodnik*, topo wspinacz*, topos, guidebook*, guide book]
     fallback: inne
     subcategories:
       sokoliki:
