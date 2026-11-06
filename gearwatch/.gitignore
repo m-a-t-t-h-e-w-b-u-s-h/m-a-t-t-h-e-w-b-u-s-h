@@ -1,0 +1,7 @@
+data/
+inbox/*
+!inbox/.gitkeep
+__pycache__/
+.pytest_cache/
+.venv/
+*.csv

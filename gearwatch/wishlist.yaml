@@ -1,0 +1,344 @@
+# Wishlista + reguły klasyfikacji.
+#
+# Składnia słów kluczowych (dopasowanie bez polskich znaków i bez wielkości liter):
+#   "karabin*"  – prefiks (karabinek, karabinki, karabinów…)
+#   "lite wire" – fraza dokładna (granice słów)
+#
+# Punktacja: trafienie w nazwie = 3 pkt, w kontekście (breadcrumbs / tytuł listingu) = 2,
+# w opisie/specyfikacji = 1, pasująca marka = +1, param_range spełniony = +3.
+# `exclude` sprawdzane jest w nazwie i kontekście – trafienie dyskwalifikuje regułę.
+#
+# Pola podkategorii:
+#   keywords, exclude, brands, require_brand (true = marka musi być z listy `brands`)
+#   params        – parametry wypisywane w CLI
+#   wanted        – false: kubełek klasyfikacyjny, ukryty w wynikach, chyba że zapytasz o niego wprost
+#   season, temp  – na stałe przypisany sezon i zakres temperatur [min, max] °C
+#   size          – zakres rozmiarów (EU), sprawdzany na dostępnych wariantach
+#   filters       – filtry liczbowe na parametrach, np. {pojemnosc_l: {min: 33}}
+#   param_range   – klasyfikacja po parametrze, np. {temp_komfortu_c: {max: -5}}
+#   shops         – ograniczenie do sklepów
+#   alert_below   – próg alertu na Telegram (cena efektywna, zł)
+# Pola kategorii: keywords, exclude, exclude_brands, fallback (nazwa podkategorii,
+# do której trafiają produkty bez żadnego dopasowania zamiast do `unknown`).
+# Kategoria bez `keywords` (np. pozostale) dopasowuje się przez swoje podkategorie.
+
+settings:
+  # Gdzie szukać plików z bookmarkletu (gearwatch-*.json) i zapisanych stron (*.html)
+  inbox:
+    - ~/Downloads
+    - ./inbox
+  stale_days: 30          # starsze ceny nie są pokazywane domyślnie
+  category_margin: 2      # o ile punktów zwycięska kategoria musi wyprzedzić drugą
+  subcategory_margin: 2   # j.w. dla podkategorii
+
+shops:
+  skalnik:
+    hosts: [skalnik.pl, www.skalnik.pl]
+    catalog_factor: 0.7   # cena efektywna = min(aktualna, katalogowa * 0.7)
+  8a:
+    hosts: [8a.pl, www.8a.pl]
+    catalog_factor: null  # cena efektywna = aktualna
+
+categories:
+
+  karabinki:
+    keywords: [karabin*, carabiner*]
+    exclude: [quickdraw*, zestaw ekspres*]
+    subcategories:
+      ekspresowe:
+        # sport, lite wire
+        keywords: [lite wire, litewire, hotwire, sport*, wire sport]
+        brands: [Black Diamond, Petzl, DMM, Climbing Technology, Camp, Edelrid, Wild Country]
+        params: [waga_g, wytrzymalosc_kn]
+        alert_below: 30
+      hms:
+        keywords: [hms, zakrec*, screwgate, screw gate, twistlock, twist lock, triact, ball lock, auto lock, autolock, automat*, magnetron, lock*]
+        params: [waga_g, typ_zamka]
+        wanted: false
+      gorskie:
+        # zwykłe (bez zamka) do ekspresów do wspinania górskiego
+        keywords: [nano, oz, micro*, mini*, ultralight, alpin*, gorsk*, ange, helium, phantom, wire]
+        exclude: [lite wire, litewire, hotwire]
+        params: [waga_g]
+
+  kosci_mechaniki:
+    keywords: [kosc*, stoper*, nut, nuts, offset*, friend*, kam, kamy, kamow, cam, cams, camalot*, mikrokam*, mechanik*]
+    subcategories:
+      kosci:
+        keywords: [kosc*, stoper*, nut, nuts, offset*, stopper*, wallnut*, rock*]
+        params: [rozmiary, waga_g]
+      friendy:
+        keywords: [friend*, kam, kamy, cam, cams, camalot*, c4, dragon*, totem*, ultralight]
+        exclude: [mikro*, micro*, z4, c3, x4]
+        params: [rozmiar, zakres_mm, waga_g]
+      mikrokamy:
+        keywords: [mikrokam*, mikro*, micro*, z4, c3, x4]
+        params: [rozmiar, waga_g]
+
+  ekspresy:
+    keywords: [ekspres*, quickdraw*]
+    exclude: [karabinek, ekspres do kawy, kawa*]
+    subcategories:
+      sportowe:
+        keywords: [sport*, hotforge, sportiva, bulldog, freino, mystic]
+        params: [dlugosc_cm, waga_g]
+      gorskie:
+        keywords: [alpin*, alpine, gorsk*, trad, oz, nano, helium, ange, dyneema, ultralight, ultra light]
+        params: [dlugosc_cm, waga_g]
+        alert_below: 70
+
+  czekany:
+    keywords: [czekan*, ice axe, ice tool*, dziab*]
+    subcategories:
+      turystyczne:
+        keywords: [turyst*, lodowc*, glacier, raven, summit, alpin*, trekking*, air tech, neve, corsa]
+        params: [dlugosc_cm, waga_g]
+        alert_below: 300
+      techniczne:
+        keywords: [technicz*, do lodu, lodospad*, ice tool*, dziab*, nomic, ergo, quark, fuel, viper, x-dream, north machine, hybrid]
+        params: [waga_g, ksztalt_rekojesci]
+
+  raki:
+    keywords: [raki, rakow, crampon*]
+    exclude: [raczki, raczek, nakladki antyposlizg*]
+    subcategories:
+      polautomatyczne:
+        keywords: [polautomat*, pol-automat*, pol automat*, semi-automatic, semiautomatic, hybrid*, hybryd*, combi]
+        params: [liczba_zebow, waga_g]
+        alert_below: 450
+      automatyczne:
+        keywords: [automat*, automatic, step-in, stepin]
+        exclude: [polautomat*, pol-automat*, pol automat*, semi-automatic, semiautomatic]
+        params: [liczba_zebow, waga_g]
+        wanted: false
+      koszykowe:
+        keywords: [koszyk*, basket, paskow*, flex*, universal, uniwersal*]
+        params: [liczba_zebow, waga_g]
+        wanted: false
+
+  palniki:
+    keywords: [palnik*, kuchenk*, stove*]
+    fallback: inne
+    subcategories:
+      x2_pro:
+        keywords: [x2 pro, x2pro, x2-pro]
+        brands: [Fire Maple]
+        params: [waga_g, czas_gotowania_min]
+      x1_pro:
+        keywords: [x1 pro, x1pro, x1-pro]
+        brands: [Fire Maple]
+        params: [waga_g, czas_gotowania_min]
+      x1:
+        keywords: [x1]
+        exclude: [x1 pro, x1pro, x1-pro]
+        brands: [Fire Maple]
+        params: [waga_g, czas_gotowania_min]
+      inne:
+        keywords: []
+        params: [waga_g, czas_gotowania_min]
+        wanted: false
+
+  plecaki:
+    keywords: [plecak*, backpack*]
+    fallback: inne
+    subcategories:
+      talon:
+        # "duży Talon" – przyjąłem >= 33 l; zmień filtr, jeśli chodzi o konkretny model
+        keywords: [talon]
+        brands: [Osprey]
+        require_brand: true
+        filters: {pojemnosc_l: {min: 33}}
+        params: [pojemnosc_l, waga_g, rozmiar]
+        alert_below: 600
+      inne:
+        keywords: []
+        params: [pojemnosc_l, waga_g]
+        wanted: false
+
+  kurtki:
+    keywords: [kurtk*, jacket*, anorak*]
+    exclude_brands: [Decathlon, Quechua, Forclaz, Simond, Wedze]
+    fallback: inne
+    subcategories:
+      hardshell:
+        keywords: [hardshell*, hard shell, gore-tex, goretex, gtx, membran*, przeciwdeszcz*, nieprzemakal*, 3l, 2.5l, 2,5l, pertex shield, futurelight, h2no, dryvent, ascentshell, event]
+        exclude: [softshell*, soft shell, puch*, down]
+        season: całoroczna
+        temp: [-20, 15]
+        params: [waga_g, wodoodpornosc_mm, sezon]
+        alert_below: 900
+      softshell:
+        keywords: [softshell*, soft shell, windstopper*, schoeller*, stretch]
+        exclude: [hardshell*, hard shell]
+        season: wiosna–jesień
+        temp: [-10, 15]
+        params: [waga_g, wodoodpornosc_mm, sezon]
+        alert_below: 500
+      inne:
+        keywords: []
+        params: [waga_g]
+        wanted: false
+
+  spodnie:
+    keywords: [spodni*, pants, trousers, bib*]
+    exclude_brands: [Decathlon, Quechua, Forclaz, Simond, Wedze]
+    fallback: inne
+    subcategories:
+      hardshell:
+        keywords: [hardshell*, hard shell, gore-tex, goretex, gtx, membran*, przeciwdeszcz*, nieprzemakal*, 3l, 2.5l, 2,5l, futurelight, h2no, dryvent, ascentshell]
+        exclude: [softshell*, soft shell]
+        temp: [-20, 15]
+        params: [waga_g, wodoodpornosc_mm]
+        alert_below: 700
+      softshell:
+        keywords: [softshell*, soft shell, windstopper*, schoeller*]
+        exclude: [hardshell*, hard shell]
+        temp: [-10, 15]
+        params: [waga_g, wodoodpornosc_mm]
+      inne:
+        keywords: []
+        params: [waga_g]
+        wanted: false
+
+  bluzy:
+    keywords: [bluz*, hoody, hoodie, polar*, koszulk*, longsleeve, t-shirt, bielizn*, kurtka ocieplan*, ocieplacz*]
+    fallback: inne
+    subcategories:
+      syntetyczne:
+        keywords: [syntet*, primaloft, polartec alpha, alpha, insulated, ocieplan*, coreloft, climashield, thermoball, ventrix, nano puff]
+        exclude: [puch*, down, merino]
+        params: [waga_g, sezon]
+      merino:
+        keywords: [merino, wel*, wool]
+        params: [waga_g, sezon]
+      inne:
+        keywords: []
+        params: [waga_g]
+        wanted: false
+
+  namioty:
+    keywords: [namiot*, tent*, tarp*]
+    fallback: inne
+    subcategories:
+      trzysezonowe:
+        keywords: [3-sezon*, 3 sezon*, trzysezon*, 3-season, ultralight, ultralekk*, lekk*, trekking*]
+        exclude: [4-sezon*, czterosezon*, zimow*, ekspedyc*]
+        season: wiosna–jesień
+        temp: [-5, 30]
+        params: [waga_g, sezon]
+      czterosezonowe:
+        keywords: [4-sezon*, 4 sezon*, czterosezon*, 4-season, zimow*, ekspedyc*, wyprawow*]
+        season: zima
+        temp: [-30, 10]
+        params: [waga_g, sezon]
+        alert_below: 2500
+      inne:
+        keywords: []
+        params: [waga_g]
+        wanted: false
+
+  spiwory:
+    keywords: [spiwor*, sleeping bag*, quilt*]
+    subcategories:
+      letnie:
+        keywords: [letni*, summer, ultralight]
+        param_range: {temp_komfortu_c: {min: 5}}
+        temp: [5, 30]
+        params: [waga_g, temp_komfortu_c]
+        wanted: false
+      trzysezonowe:
+        keywords: [3-sezon*, trzysezon*, 3-season]
+        param_range: {temp_komfortu_c: {min: -4.9, max: 4.9}}
+        temp: [-5, 10]
+        params: [waga_g, temp_komfortu_c]
+      zimowe:
+        keywords: [zimow*, ekspedyc*, winter, wyprawow*]
+        param_range: {temp_komfortu_c: {max: -5}}
+        temp: [-40, -5]
+        params: [waga_g, temp_komfortu_c]
+        alert_below: 1500
+
+  karimaty:
+    keywords: [karimat*, mata samopomp*, materac*, podkladk*, sleeping pad*, pad]
+    exclude: [crash*, materac dmuchany do basenu]
+    subcategories:
+      letnie:
+        param_range: {r_value: {max: 1.99}}
+        keywords: [letni*, summer]
+        params: [waga_g, r_value]
+        wanted: false
+      trzysezonowe:
+        param_range: {r_value: {min: 2, max: 3.99}}
+        keywords: [3-sezon*, trzysezon*]
+        params: [waga_g, r_value]
+      zimowe:
+        param_range: {r_value: {min: 4}}
+        keywords: [zimow*, winter, xtherm]
+        params: [waga_g, r_value]
+        alert_below: 700
+
+  buty:
+    keywords: [but, buty, butow, obuwie, boot, boots, trzewik*, kozak*]
+    fallback: inne
+    subcategories:
+      b2:
+        keywords: [b2, wysokogorsk*, gorskie, alpin*, nepal, trango, aequilibrium, g5, mountain pro]
+        exclude: [b3, b1, podejsciow*]
+        size: {min: 45.5, max: 46.5}
+        params: [waga_g, rozmiary]
+        alert_below: 1200
+      frey_style:
+        # skórzane wysokie w stylu Frey (harness, cowboy)
+        keywords: [harness, cowboy, kowboj*, western, engineer, frye, frey]
+        params: [rozmiary]
+      inne:
+        keywords: []
+        params: [rozmiary]
+        wanted: false
+
+  przewodniki:
+    keywords: [przewodnik*, topo*, guidebook*, guide book]
+    fallback: inne
+    subcategories:
+      sokoliki:
+        keywords: [sokolik*, rudawy janowickie]
+        params: []
+      klodzko:
+        keywords: [klodz*, kotlina klodzka, ziemia klodzka, szczeliniec]
+        params: []
+      inne:
+        keywords: []
+        params: []
+        wanted: false
+
+  pozostale:
+    subcategories:
+      crashpad:
+        keywords: [crash*, crash pad, crashpad*, bouldering pad]
+        params: [waga_g]
+        alert_below: 600
+      dehydrator:
+        keywords: [dehydrat*, suszark* do zywnosci, suszark* do owocow]
+        params: []
+      czapka:
+        keywords: [czapk*, beanie*, toque]
+        brands: [Mammut, Arc'teryx]
+        require_brand: true
+        params: []
+      bootcut_levis:
+        keywords: [bootcut, boot cut, 527, 517]
+        brands: [Levi's]
+        require_brand: true
+        params: [rozmiary]
+      perfumy:
+        keywords: [azzaro, most wanted, perfum*, eau de parfum, eau de toilette]
+        brands: [Azzaro]
+        require_brand: true
+        params: []
+      karta_podarunkowa:
+        keywords: [karta podarunkow*, gift card, bon podarunkow*, e-karta]
+        shops: [skalnik]
+        params: []
+      home_wall:
+        keywords: [home wall, homewall, scianka wspinaczkow*, scianka domow*, panel wspinaczkow*, moonboard, kilter]
+        params: []

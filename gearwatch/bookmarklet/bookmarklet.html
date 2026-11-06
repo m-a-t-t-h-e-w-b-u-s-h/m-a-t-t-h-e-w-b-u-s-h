@@ -1,0 +1,16 @@
+<!doctype html>
+<html lang="pl"><head><meta charset="utf-8"><title>gearwatch – bookmarklet</title>
+<style>body{font:16px/1.5 system-ui,sans-serif;max-width:640px;margin:40px auto;padding:0 16px}
+a.bm{display:inline-block;padding:10px 16px;background:#1b5e20;color:#fff;border-radius:6px;text-decoration:none}</style>
+</head><body>
+<h1>gearwatch – zrzut strony</h1>
+<p>Przeciągnij ten przycisk na pasek zakładek:</p>
+<p><a class="bm" href="javascript:(function%20()%20{%20var%20d%20=%20document;%20var%20ld%20=%20Array.prototype.map.call(%20d.querySelectorAll(&#x27;script[type=%22application/ld+json%22]&#x27;),%20function%20(s)%20{%20return%20s.textContent;%20});%20var%20c%20=%20d.documentElement.cloneNode(true);%20c.querySelectorAll(&#x27;script,style,noscript,svg,iframe,video,link[rel=stylesheet]&#x27;)%20.forEach(function%20(e)%20{%20e.remove();%20});%20var%20now%20=%20new%20Date().toISOString();%20var%20payload%20=%20{%20v:%201,%20url:%20location.href,%20title:%20d.title,%20captured_at:%20now,%20jsonld:%20ld,%20html:%20&#x27;&lt;!doctype%20html&gt;&#x27;%20+%20c.outerHTML%20};%20var%20blob%20=%20new%20Blob([JSON.stringify(payload)],%20{%20type:%20&#x27;application/json&#x27;%20});%20var%20a%20=%20d.createElement(&#x27;a&#x27;);%20a.href%20=%20URL.createObjectURL(blob);%20a.download%20=%20&#x27;gearwatch-&#x27;%20+%20location.hostname.replace(/^www%5C./,%20&#x27;&#x27;)%20+%20&#x27;-&#x27;%20+%20now.replace(/[:.]/g,%20&#x27;-&#x27;)%20+%20&#x27;.json&#x27;;%20d.body.appendChild(a);%20a.click();%20var%20t%20=%20d.createElement(&#x27;div&#x27;);%20t.textContent%20=%20&#x27;gearwatch:%20zapisano%20zrzut%20(&#x27;%20+%20Math.round(blob.size%20/%201024)%20+%20&#x27;%20kB)&#x27;;%20t.style.cssText%20=%20&#x27;position:fixed;z-index:2147483647;bottom:16px;right:16px;padding:10px%2014px;&#x27;%20+%20&#x27;background:%231b5e20;color:%23fff;font:14px%20sans-serif;border-radius:6px&#x27;;%20d.body.appendChild(t);%20setTimeout(function%20()%20{%20URL.revokeObjectURL(a.href);%20a.remove();%20t.remove();%20},%202500);%20})();">📥 gearwatch</a></p>
+<ol>
+<li>Otwórz stronę kategorii (np. karabinki) albo produktu w Skalniku lub 8a.</li>
+<li>Przewiń do końca listy, żeby doładowały się wszystkie produkty.</li>
+<li>Kliknij zakładkę <b>gearwatch</b> – w Pobranych pojawi się plik <code>gearwatch-….json</code>.</li>
+<li>Uruchom <code>python refresh.py</code> (albo poczekaj na zaplanowane zadanie).</li>
+</ol>
+<p>Strony produktów dają więcej parametrów (waga, rozmiary, specyfikacja) niż listingi.</p>
+</body></html>
