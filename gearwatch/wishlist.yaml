@@ -87,52 +87,74 @@ categories:
         params: [rozmiary, waga_g]
       friendy:
         keywords: [friend*, kam, kamy, cam, cams, camalot*, c4, dragon*, totem*, ultralight]
-        exclude: [mikro*, micro*, z4, c3, x4, zero friend*, zero]
+        exclude: [mikro*, micro*, z4, c3, x4, zero friend*, zero, dragonfly]
         params: [rozmiar, zakres_mm, waga_g]
       mikrokamy:
-        keywords: [mikrokam*, mikro*, micro*, z4, c3, x4, zero friend*, zero]
+        keywords: [mikrokam*, mikro*, micro*, z4, c3, x4, zero friend*, zero, dragonfly]
         params: [rozmiar, waga_g]
 
   ekspresy:
     keywords: [ekspres*, quickdraw*]
-    exclude: [karabinek, ekspres do kawy, kawa*]
+    exclude: [karabinek, ekspres do kawy, kawa*, tasm*]
+    fallback: inne
     subcategories:
       sportowe:
-        keywords: [sport*, hotforge, sportiva, bulldog, freino, mystic]
+        # pełne zamki (keylock/KS, proste/gięte) – modele z listingu Skalnika
+        keywords: [sport*, hotforge, sportiva, bulldog, freino, mystic, djinn, spirit, session, orbit, photon, lime,
+                   hawk, keylock, ks, str/bnt, bent, steel, axess]
+        exclude: [wire*, hotwire, litewire, wildwire, wildhybrid, alpin*, alpine, dyneema]
         params: [dlugosc_cm, waga_g]
       gorskie:
-        keywords: [alpin*, alpine, gorsk*, trad, oz, nano, helium, ange, dyneema, ultralight, ultra light]
+        # zamki drutowe / alpinistyczne
+        keywords: [alpin*, alpine, gorsk*, trad, oz, nano, helium, ange, dyneema, ultralight, ultra light,
+                   wire*, hotwire, litewire, wildwire, wildhybrid]
         params: [dlugosc_cm, waga_g]
         alert_below: 70
+      inne:
+        keywords: []
+        params: [dlugosc_cm, waga_g]
 
   czekany:
     keywords: [czekan*, ice axe, ice tool*, dziab*]
+    exclude: [oslon*, axe guard, ochraniacz*, smycz*, leash, pokrowiec*, kabur*]
+    fallback: inne
     subcategories:
       turystyczne:
-        keywords: [turyst*, lodowc*, glacier, raven, summit, alpin*, trekking*, air tech, neve, corsa]
+        keywords: [turyst*, lodowc*, glacier, raven, summit, alpin*, trekking*, air tech, neve, corsa,
+                   g zero, g1, ghost, ortles]
         params: [dlugosc_cm, waga_g]
         alert_below: 300
       techniczne:
-        keywords: [technicz*, do lodu, lodospad*, ice tool*, dziab*, nomic, ergo, quark, fuel, viper, x-dream, north machine, hybrid]
+        keywords: [technicz*, do lodu, lodospad*, ice tool*, dziab*, nomic, ergo, quark, fuel, viper, x-dream, north machine, hybrid,
+                   x monster, x-monster, adze, hammer]
         params: [waga_g, ksztalt_rekojesci]
+      inne:
+        # model bez jednoznacznego typu – widoczny w wynikach; typ rozstrzygnie strona produktu
+        keywords: []
+        params: [dlugosc_cm, waga_g]
 
   raki:
     keywords: [raki, rakow, crampon*]
-    exclude: [raczki, raczek, nakladki antyposlizg*]
+    exclude: [raczki, raczek, nakladki antyposlizg*, but, buty, torb*, pokrowiec*, ochraniacz*, oslon*, antysniegow*]
+    fallback: inne
     subcategories:
       polautomatyczne:
-        keywords: [polautomat*, pol-automat*, pol automat*, semi-automatic, semiautomatic, hybrid*, hybryd*, combi]
+        keywords: [polautomat*, pol-automat*, pol automat*, semi-automatic, semiautomatic, semi, hybrid*, hybryd*, combi,
+                   dual-matic, dualmatic, clip]
         params: [liczba_zebow, waga_g]
         alert_below: 450
       automatyczne:
-        keywords: [automat*, automatic, step-in, stepin]
-        exclude: [polautomat*, pol-automat*, pol automat*, semi-automatic, semiautomatic]
+        keywords: [automat*, automatic, step-in, stepin, auto, cramp-o-matic, new-matic, newmatic, leverlock]
+        exclude: [polautomat*, pol-automat*, pol automat*, semi-automatic, semiautomatic, semi, dual-matic, dualmatic]
         params: [liczba_zebow, waga_g]
         wanted: false
       koszykowe:
-        keywords: [koszyk*, basket, paskow*, flex*, universal, uniwersal*]
+        keywords: [koszyk*, basket, paskow*, flex*, universal, uniwersal*, classic, new-classic, strap, soft, walk]
         params: [liczba_zebow, waga_g]
         wanted: false
+      inne:
+        keywords: []
+        params: [liczba_zebow, waga_g]
 
   palniki:
     keywords: [palnik*, kuchenk*, stove*]
@@ -266,6 +288,8 @@ categories:
 
   spiwory:
     keywords: [spiwor*, sleeping bag*, quilt*]
+    exclude: [wkladk*, liner*, dla psa, poduszk*, worek kompres*, pokrowiec*]
+    fallback: inne
     subcategories:
       letnie:
         keywords: [letni*, summer, ultralight]
@@ -284,10 +308,15 @@ categories:
         temp: [-40, -5]
         params: [waga_g, temp_komfortu_c]
         alert_below: 1500
+      inne:
+        # temperatura nieznana (brak w nazwie) – widoczny; sezon ustali strona produktu
+        keywords: []
+        params: [waga_g, temp_komfortu_c]
 
   karimaty:
     keywords: [karimat*, mata samopomp*, materac*, podkladk*, sleeping pad*, pad]
-    exclude: [crash*, materac dmuchany do basenu]
+    exclude: [crash*, materac dmuchany do basenu, pompk*, poduszk*, lata*, zestaw naprawczy]
+    fallback: inne
     subcategories:
       letnie:
         param_range: {r_value: {max: 1.99}}
@@ -303,13 +332,17 @@ categories:
         keywords: [zimow*, winter, xtherm]
         params: [waga_g, r_value]
         alert_below: 700
+      inne:
+        # R-value nieznane – widoczny; R ustali strona produktu
+        keywords: []
+        params: [waga_g, r_value]
 
   buty:
     keywords: [but, buty, butow, obuwie, boot, boots, trzewik*, kozak*]
     fallback: inne
     subcategories:
       b2:
-        keywords: [b2, wysokogorsk*, gorskie, alpin*, nepal, trango, aequilibrium, g5, mountain pro]
+        keywords: [b2, wysokogorsk*, gorskie, alpin*, nepal, trango, aequilibrium, g5, mountain pro, pod raki, rapace]
         exclude: [b3, b1, podejsciow*]
         size: {min: 45.5, max: 46.5}
         params: [waga_g, rozmiary]

@@ -404,3 +404,36 @@ def test_gender_filter_default_men(cfg):
     assert gender_ok(cfg, {"plec": "m"}) and gender_ok(cfg, {"plec": "u"})
     assert not gender_ok(cfg, {"plec": "k"}) and not gender_ok(cfg, {"plec": "d"})
     assert gender_ok(cfg, {"plec": "k"}, "damskie")
+
+
+
+@pytest.mark.parametrize("name,expected", [
+    # druga partia nazw z prawdziwego raportu unknown (Skalnik)
+    ("Czekan g zero-adriatic blue", "czekany/turystyczne"),
+    ("Czekan x monster hammer", "czekany/techniczne"),
+    ("Czekan asgard", "czekany/inne"),
+    ("Osłona do czekana axe guard-yellow", "None/None"),
+    ("Ekspres djinn axess 12 cm-blue", "ekspresy/sportowe"),
+    ("Ekspres hotwire 12cm-desert sky", "ekspresy/gorskie"),
+    ("Zestaw ekspresów orbit wire ks 12cm 6 pack", "ekspresy/gorskie"),
+    ("Zestaw ekspresów photon ks 12cm 6 pack", "ekspresy/sportowe"),
+    ("Taśma do ekspresów quickdraw bio-dyn 11mm 10cm-red", "None/None"),
+    ("Materac ultralight mummy standard r 3.5 cnh22dz018-black", "karimaty/trzysezonowe"),
+    ("Materac tuye r 5.8 cnh22dz016 square-carbon silver", "karimaty/zimowe"),
+    ("Mata samopompująca classic light km3595-dark green", "karimaty/inne"),
+    ("Kość mechaniczna dragonfly cam 3", "kosci_mechaniki/mikrokamy"),
+    ("Raki g12 lt dual-matic evo-yellow", "raki/polautomatyczne"),
+    ("Raki rupal semi -grey-orange", "raki/polautomatyczne"),
+    ("Raki g12 lt new-matic evo-yellow", "raki/automatyczne"),
+    ("Raki shark auto ii-night-oasis", "raki/automatyczne"),
+    ("Raki g12 lt new-classic evo-black-yellow", "raki/koszykowe"),
+    ("Buty ms rapace gtx-night black-kamille męskie pod raki", "buty/b2"),
+    ("Śpiwór puez rds down -12-gold", "spiwory/zimowe"),
+    ("Śpiwór puez rds down -1-gold", "spiwory/trzysezonowe"),
+    ("Śpiwór radical 4z regular-red-red", "spiwory/inne"),
+    ("Wkładka do śpiwora thermolite emt5-navy", "None/None"),
+    ("Śpiwór dla psa moon pillar kks2102-blue", "None/None"),
+])
+def test_real_skalnik_names_batch2(cfg, name, expected):
+    r = classify(cfg, name, params=extract_params(name))
+    assert f"{r.category}/{r.subcategory}" == expected, r

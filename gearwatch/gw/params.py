@@ -132,7 +132,12 @@ def extract_params(name: str, description: str = "", specs: dict | None = None, 
     p["czas_gotowania_min"] = _boil_minutes(full)
     p["temp_komfortu_c"] = _temp(full, r"(?:temp\w*\s+)?komfort\w*|t\s?comf\w*|comfort")
     p["temp_limit_c"] = _temp(full, r"(?:temp\w*\s+)?limit\w*|t\s?lim\w*")
-    p["r_value"] = _first(r"r[\s\-]?value[^0-9]{0,10}" + NUM, full) or _first(r"\br\s*[=:]\s*" + NUM, full)
+    p["r_value"] = (_first(r"r[\s\-]?value[^0-9]{0,10}" + NUM, full) or _first(r"\br\s*[=:]\s*" + NUM, full)
+                    or _first(r"(?<![a-z0-9])r\s?(\d(?:[.,]\d)?)(?![\d.,]|\s*(?:cm|mm|l)\b)", n))  # "materac ... r 3.5"
+    if p["temp_komfortu_c"] is None and re.search(r"spiwor|sleeping bag|quilt", n):
+        t = re.search(r"(?<![\w])([\-−]\d{1,2})(?:\s*°?\s*c)?(?![\d\w])", n)  # "puez rds down -12"
+        if t:
+            p["temp_komfortu_c"] = _f(t.group(1).replace("−", "-"))
 
     wp = _spec(specs, "wodoodpor", "slup wody", "water column", "waterproof")
     m = re.search(r"(\d{1,3}(?:[ .]\d{3})+|\d{4,6})\s*mm", wp or full)
