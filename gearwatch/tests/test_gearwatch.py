@@ -81,6 +81,19 @@ def test_parse_size():
     ("Karabinek Black Diamond LiteWire", ("karabinki", "ekspresowe")),
     ("Karabinek HMS Petzl Attache Screw-Lock", ("karabinki", "hms")),
     ("Karabinek Camp Nano 22", ("karabinki", "gorskie")),
+    # nazwy z prawdziwego listingu Skalnika
+    ("KARABINEK LITEWIRE", ("karabinki", "ekspresowe")),
+    ("KARABINEK MINIWIRE", ("karabinki", "gorskie")),
+    ("KARABINEK VERTIGO WIRE LOCK", ("karabinki", "hms")),
+    ("KARABINEK ROCKLOCK", ("karabinki", "hms")),
+    ("KARABINEK EAGLE HMS TRIPLEX", ("karabinki", "hms")),
+    ("KARABINEK ATOM LOCK-BLACK", ("karabinki", "hms")),
+    ("KARABINEK VERTIGO WIRE-LOCK M040AB00", ("karabinki", "hms")),
+    ("KARABINEK ATTACHE M038AA01", ("karabinki", "hms")),
+    ("KARABINEK OSPREY TWIST", ("karabinki", "hms")),
+    ("KARABINEK ROCHA SCREW-ORANGE", ("karabinki", "hms")),
+    ("KARABINEK LIME WG -ANTHRACITE-BLUE", ("karabinki", "gorskie")),
+    ("KARABINEK ELECTRON STRAIGHT GATE", ("karabinki", "ekspresowe")),
     ("Ekspres Petzl Spirit Express Sport 12 cm", ("ekspresy", "sportowe")),
     ("Ekspres alpinistyczny Black Diamond OZ Alpine 60 cm", ("ekspresy", "gorskie")),
     ("Kości Wild Country Rocks zestaw 1-10", ("kosci_mechaniki", "kosci")),
@@ -106,6 +119,10 @@ def test_parse_size():
 def test_classification(cfg, name, expected):
     r = classify(cfg, name)
     assert (r.category, r.subcategory) == expected, r
+
+
+def test_accessory_carabiner_is_not_wishlist(cfg):
+    assert classify(cfg, "KARABINEK SPRZĘTOWY MINO Z AKCESORIAMI").category is None
 
 
 def test_excluded_brand(cfg):

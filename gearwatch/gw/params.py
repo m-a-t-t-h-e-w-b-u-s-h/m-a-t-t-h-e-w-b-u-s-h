@@ -61,7 +61,8 @@ def _gate(text: str) -> str | None:
         ("ball lock", ["ball lock", "ball-lock"]),
         ("magnetron", ["magnetron"]),
         ("automatyczny", ["auto lock", "autolock", "automatyczn"]),
-        ("zakręcany", ["screwgate", "screw gate", "zakrec", "screw-lock", "screwlock"]),
+        ("zakręcany", ["screwgate", "screw gate", "zakrec", "screw-lock", "screwlock", "screw"]),
+        ("automatyczny (triple)", ["triplex", "triple"]),
     ):
         if any(k in text for k in kws):
             return label

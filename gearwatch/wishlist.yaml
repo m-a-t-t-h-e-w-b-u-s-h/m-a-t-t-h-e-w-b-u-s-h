@@ -43,22 +43,23 @@ categories:
 
   karabinki:
     keywords: [karabin*, carabiner*]
-    exclude: [quickdraw*, zestaw ekspres*]
+    exclude: [quickdraw*, zestaw ekspres*, sprzetow*, akcesori*]
     subcategories:
       ekspresowe:
         # sport, lite wire
-        keywords: [lite wire, litewire, hotwire, sport*, wire sport]
+        keywords: [lite wire, litewire, hotwire, sport*, wire sport, straight gate, bent gate, solid gate]
+        exclude: [lock, screw*, zakrec*, hms]
         brands: [Black Diamond, Petzl, DMM, Climbing Technology, Camp, Edelrid, Wild Country]
         params: [waga_g, wytrzymalosc_kn]
         alert_below: 30
       hms:
-        keywords: [hms, zakrec*, screwgate, screw gate, twistlock, twist lock, triact, ball lock, auto lock, autolock, automat*, magnetron, lock*]
+        keywords: [hms, zakrec*, screwgate, screw gate, screw, twistlock, twist lock, triact, ball lock, auto lock, autolock, automat*, magnetron, lock, rocklock, gridlock, pearlock, triple, triplex, belay, attache, twist]
         params: [waga_g, typ_zamka]
         wanted: false
       gorskie:
         # zwykłe (bez zamka) do ekspresów do wspinania górskiego
-        keywords: [nano, oz, micro*, mini*, ultralight, alpin*, gorsk*, ange, helium, phantom, wire]
-        exclude: [lite wire, litewire, hotwire]
+        keywords: [nano, oz, micro*, mini*, miniwire, ultralight, alpin*, gorsk*, ange, helium, phantom, wire, wg, wiregate, wire gate]
+        exclude: [lite wire, litewire, hotwire, lock, screw*, zakrec*, hms]
         params: [waga_g]
 
   kosci_mechaniki:
