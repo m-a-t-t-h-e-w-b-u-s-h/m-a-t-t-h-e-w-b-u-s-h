@@ -1,0 +1,44 @@
+# Znane modele kurtek/spodni przeciwdeszczowych i ich membrany.
+#
+# Używane, gdy nazwa w sklepie nie podaje membrany (np. Skalnik: "Kurtka triolet-...").
+# Dopasowanie modelu = produkt dostaje parametr `membrana` (i `warstwy`, jeśli podane)
+# oraz trafia do podkategorii hardshell.
+#
+#   model:  słowa z nazwy (bez polskich znaków i wielkości liter, "*" = prefiks)
+#   brand:  wymagana marka (w nazwie, marce produktu lub adresie) – podawaj przy
+#           modelach o pospolitych nazwach (Beta, Alpha, Rush…), żeby nie łapać innych rzeczy
+#
+# UWAGA: wpisane z pamięci (bez dostępu do stron producentów), tylko modele, przy których
+# membrana jest dość pewna. Producenci zmieniają materiały między wersjami – jeśli coś się
+# nie zgadza z opisem w sklepie, popraw albo usuń wpis. Specyfikacja ze strony produktu
+# ma zawsze pierwszeństwo przed tą tabelą.
+
+models:
+  # --- Gore-Tex Pro
+  - {model: alpha sv, brand: Arc'teryx, membrana: Gore-Tex Pro, warstwy: 3L}
+  - {model: alpha ar, brand: Arc'teryx, membrana: Gore-Tex Pro, warstwy: 3L}
+  - {model: rush, brand: Arc'teryx, membrana: Gore-Tex Pro, warstwy: 3L}
+  - {model: nordwand, membrana: Gore-Tex Pro, warstwy: 3L}
+  - {model: taiss, membrana: Gore-Tex Pro, warstwy: 3L}
+  - {model: latok, membrana: Gore-Tex Pro, warstwy: 3L}
+  - {model: tupilak, membrana: Gore-Tex Pro, warstwy: 3L}
+  - {model: changabang, membrana: Gore-Tex Pro, warstwy: 3L}
+
+  # --- Gore-Tex
+  - {model: beta, brand: Arc'teryx, membrana: Gore-Tex}
+  - {model: zeta, brand: Arc'teryx, membrana: Gore-Tex}
+  - {model: sabre, brand: Arc'teryx, membrana: Gore-Tex}
+  - {model: triolet, membrana: Gore-Tex, warstwy: 3L}
+  - {model: lhotse, membrana: Gore-Tex}
+  - {model: makalu, membrana: Gore-Tex}
+  - {model: muztag, membrana: Gore-Tex}
+  - {model: minimalist, brand: Marmot, membrana: Gore-Tex Paclite, warstwy: "2,5L"}
+  - {model: calcite, membrana: Gore-Tex Paclite, warstwy: "2,5L"}
+
+  # --- membrany własne marek
+  - {model: torrentshell, membrana: H2No, warstwy: 3L}
+  - {model: granite crest, membrana: H2No}
+  - {model: storm10, membrana: H2No}
+  - {model: downpour, brand: Rab, membrana: Pertex Shield}
+  - {model: firewall, brand: Rab, membrana: Pertex Shield}
+  - {model: kinetic, brand: Rab, membrana: własna/inna}

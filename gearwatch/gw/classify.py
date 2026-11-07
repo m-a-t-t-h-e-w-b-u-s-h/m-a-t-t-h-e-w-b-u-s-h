@@ -63,6 +63,11 @@ def _score(t: Texts, keywords, exclude, params: dict | None = None, param_range=
         hits += [f"{label}:{k}" for k in found]
     for pname, rng in (param_range or {}).items():
         v = (params or {}).get(pname)
+        if rng is True:  # parametr ustawiony (np. znany model z modele.yaml)
+            if v:
+                score += W_PARAM
+                hits.append(f"param:{pname}")
+            continue
         if isinstance(v, (int, float)) and rng.get("min", float("-inf")) <= v <= rng.get("max", float("inf")):
             score += W_PARAM
             hits.append(f"param:{pname}={v}")

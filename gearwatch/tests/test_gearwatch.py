@@ -721,3 +721,33 @@ def test_basket_hints_cheaper_unknown_season(con, cfg, tmp_path):
 def test_membrane_ignores_description_and_unrelated_specs(name, desc, specs, expected):
     from gw.params import membrane
     assert membrane(name, desc, specs) == expected
+
+
+
+@pytest.mark.parametrize("name,brand,url,mem,lay", [
+    ("Kurtka triolet-black", "", "", "Gore-Tex", "3L"),
+    ("Kurtka nordwand pro hs hooded", "", "", "Gore-Tex Pro", "3L"),
+    ("Kurtka torrentshell 3l-black", "", "", "H2No", "3L"),
+    ("Kurtka beta ar", "Arc'teryx", "", "Gore-Tex", None),
+    ("Kurtka beta ar", "", "", None, None),               # pospolita nazwa bez marki – nie zgadujemy
+    ("Kurtka downpour eco", "", "https://8a.pl/kurtka-rab-downpour-eco", "Pertex Shield", None),
+])
+def test_known_shell_models(name, brand, url, mem, lay):
+    from gw.params import known_shell
+    km = known_shell(name, brand, url)
+    assert (km or {}).get("membrana") == mem and (km or {}).get("warstwy") == lay
+
+
+def test_known_model_goes_to_hardshell_end_to_end(con, cfg, tmp_path):
+    cap = {"url": "https://www.skalnik.pl/kurtki", "captured_at": "2099-01-01T00:00:00Z",
+           "html": "<html><body><h1>Kurtki trekkingowe męskie</h1><li class='product-item'>"
+                   "<a class='product-item-link' href='/kurtka-triolet-black-1'>Kurtka triolet-black</a>"
+                   "<span data-price-type='finalPrice' data-price-amount='1399'></span></li></body></html>"}
+    f = tmp_path / "gearwatch-skalnik.pl-x.json"
+    f.write_text(json.dumps(cap))
+    import_file(con, cfg, f, archive=False)
+    reclassify(con, cfg)
+    row = con.execute("SELECT * FROM products").fetchone()
+    p = json.loads(row["params"])
+    assert (row["category"], row["subcategory"]) == ("kurtki", "hardshell")
+    assert p["membrana"] == "Gore-Tex" and p["warstwy"] == "3L"

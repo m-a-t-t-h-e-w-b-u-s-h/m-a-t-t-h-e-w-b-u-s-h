@@ -13,7 +13,7 @@ from . import db
 from .classify import classify
 from .config import ROOT, Config
 from .extract import Record, extract
-from .params import body_fit_params, detect_gender, extract_params, layers, mat_r_value, membrane
+from .params import body_fit_params, detect_gender, extract_params, known_shell, layers, mat_r_value, membrane
 from .pricing import effective_price
 
 ARCHIVE = ROOT / "data" / "archive"
@@ -144,9 +144,14 @@ def reclassify(con, cfg: Config) -> dict:
             if r:
                 params["r_value"] = r
         mem = membrane(row["name"], row["description"] or "", specs)
+        km = known_shell(row["name"], row["brand"] or "", row["url"] or "")
+        if km:
+            params["znany_shell"] = str(km["model"])
+            if not mem or mem == "własna/inna":
+                mem = km["membrana"]
         if mem:
             params["membrana"] = mem
-        lay = layers(row["name"], row["description"] or "", specs, mem)
+        lay = layers(row["name"], row["description"] or "", specs, mem) or (km or {}).get("warstwy")
         if lay:
             params["warstwy"] = lay
         res = classify(cfg, row["name"], row["context"] or "", " ".join([row["description"] or "", *map(str, specs.values())]),

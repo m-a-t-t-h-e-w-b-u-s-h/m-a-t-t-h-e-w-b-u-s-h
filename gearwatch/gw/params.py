@@ -301,3 +301,31 @@ def mat_r_value(name: str) -> float | None:
         if re.search(pat, n):
             return r
     return None
+
+
+_KNOWN_MODELS = None
+
+
+def known_models() -> list[dict]:
+    global _KNOWN_MODELS
+    if _KNOWN_MODELS is None:
+        import yaml
+        from pathlib import Path
+        path = Path(__file__).resolve().parent.parent / "modele.yaml"
+        _KNOWN_MODELS = (yaml.safe_load(path.read_text(encoding="utf-8")) or {}).get("models", []) if path.exists() else []
+    return _KNOWN_MODELS
+
+
+def known_shell(name: str, brand: str = "", url: str = "") -> dict | None:
+    """Membrana/warstwy znanego modelu z modele.yaml (gdy sklep jej nie podaje)."""
+    from .text import has_keyword
+    n = normalize(name)
+    hay = " ".join([n, normalize(brand), normalize(re.sub(r"[/\-_.]+", " ", url or ""))])
+    for m in known_models():
+        if not has_keyword(n, str(m["model"])):
+            continue
+        b = m.get("brand")
+        if b and normalize(b) not in hay:
+            continue
+        return m
+    return None
