@@ -248,21 +248,29 @@ OWN_MEMBRANE = [r"membran\w*", r"ascentshell", r"neoshell", r"aquafoil", r"hydro
                 r"hyvent", r"dry\.?q", r"proshell", r"storm[\s\-]?shell", r"nieprzemakal\w*", r"(?<![a-z0-9])(?:2[.,]5|3)\s?l\b"]
 
 
+MEMBRANE_SPEC_KEYS = ("membran", "material", "technolog", "tkanin", "wodoodpor", "warstw", "laminat", "fabric", "shell")
+
+
+def _membrane_text(name: str, specs: dict | None) -> str:
+    """Nazwa + tylko te pola specyfikacji, które opisują materiał/membranę (nie cała strona, nie opis)."""
+    rel = [f"{k}: {v}" for k, v in (specs or {}).items() if any(x in normalize(k) for x in MEMBRANE_SPEC_KEYS)]
+    return normalize(" ; ".join([name, *rel]))
+
+
 def membrane(name: str, description: str = "", specs: dict | None = None) -> str | None:
-    """Membrana z nazwy/specyfikacji (opis tylko dla jednoznacznych nazw własnych)."""
-    head = normalize(name + " ; " + " ; ".join(f"{k}: {v}" for k, v in (specs or {}).items()))
-    desc = normalize(description)
+    """Membrana z nazwy i z pól specyfikacji o materiale. Opis produktu jest pomijany –
+    często wspomina Gore-Tex przy porównaniach albo w tekście o kolekcji."""
+    head = _membrane_text(name, specs)
     for label, pats in MEMBRANES:
-        for p in pats:
-            if re.search(p, head) or (label not in ("eVent", "Gore-Tex ePE") and re.search(p, desc)):
-                return label
+        if any(re.search(p, head) for p in pats):
+            return label
     if any(re.search(p, head) for p in OWN_MEMBRANE):
         return "własna/inna"
     return None
 
 
 def layers(name: str, description: str = "", specs: dict | None = None, membrane_label: str | None = None) -> str | None:
-    text = normalize(" ; ".join([name, *[f"{k}: {v}" for k, v in (specs or {}).items()], description]))
+    text = _membrane_text(name, specs)
     m = re.search(r"(?<![a-z0-9.,])(2[.,]5|2|3)\s?-?\s?(?:l|warstw\w*|layer\w*)(?![a-z0-9])", text)
     if m:
         return m.group(1).replace(".", ",") + "L"

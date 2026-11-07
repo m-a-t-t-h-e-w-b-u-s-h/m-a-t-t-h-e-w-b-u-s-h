@@ -88,8 +88,11 @@ przechodzą, nieznana długość dostaje dopisek „?”.
 DryVent, Pertex Shield, własna/inna) i `warstwy` (2L / 2,5L / 3L) z nazwy
 i specyfikacji. Filtry: `--membrana gore-tex` (dowolny Gore-Tex) albo
 konkretna, `--warstwy 3L`, `--wodo-min 20000`; na stronie – listy „Membrana”,
-„Warstwy” i pole „Wodoodporność min” po wybraniu kurtek/spodni. Produkty bez
-znanej wartości zostają z „?”, chyba że zaznaczysz „ukryj nieznane”.
+„Warstwy” i pole „Wodoodporność min” po wybraniu kurtek/spodni. Wybrana
+membrana/warstwy pokazują tylko produkty, przy których są potwierdzone
+(z nazwy lub pól specyfikacji o materiale – opis produktu jest pomijany).
+Przy wodoodporności produkty bez znanej wartości zostają z „?”, chyba że
+zaznaczysz „ukryj nieznaną wodoodporność”.
 
 Wynik jest posortowany od najtańszej ceny efektywnej. Dla każdego produktu
 widać: cenę efektywną (i aktualną, jeśli się różni), sklep, nazwę,

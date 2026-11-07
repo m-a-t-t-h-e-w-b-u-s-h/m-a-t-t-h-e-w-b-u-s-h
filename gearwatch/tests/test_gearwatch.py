@@ -489,8 +489,10 @@ def test_shell_filters():
     gtx3 = {"membrana": "Gore-Tex Pro", "warstwy": "3L", "wodoodpornosc_mm": 28000}
     assert shell_ok(gtx3, "gore-tex", "3L", 20000) == (True, [])
     assert shell_ok({"membrana": "Futurelight"}, "gore-tex")[0] is False
-    assert shell_ok({}, "gore-tex") == (True, ["membrana ?"])
-    assert shell_ok({}, "gore-tex", strict=True)[0] is False
+    assert shell_ok({}, "gore-tex")[0] is False          # nieznana membrana nie przechodzi filtra Gore-Tex
+    assert shell_ok({}, warstwy="3L")[0] is False
+    assert shell_ok({}, wodo_min=20000) == (True, ["wodoodp. ?"])
+    assert shell_ok({}, wodo_min=20000, strict=True)[0] is False
     assert shell_ok({"wodoodpornosc_mm": 10000}, wodo_min=20000)[0] is False
 
 
@@ -706,3 +708,16 @@ def test_basket_hints_cheaper_unknown_season(con, cfg, tmp_path):
     con.execute("UPDATE prices SET day=date('now')")
     rows = {r["key"]: r for r in webapi.api_basket(con, cfg, {})["rows"]}
     assert rows["palnik"]["other"]["name"] == "Kuchenka Jetboil Flash"   # palniki/inne
+
+
+
+@pytest.mark.parametrize("name,desc,specs,expected", [
+    # opis i niezwiązane tabele nie mogą dawać Gore-Teksu
+    ("Kurtka Rab Downpour Eco", "W przeciwieństwie do kurtek z Gore-Tex ta kurtka...", {}, None),
+    ("Kurtka X", "", {"Rozmiar": "M", "Polecane": "Kurtka Mammut Nordwand GTX"}, None),
+    ("Kurtka X", "", {"Materiał": "GORE-TEX Pro 3L"}, "Gore-Tex Pro"),
+    ("Kurtka X", "", {"Membrana": "DryVent 2.5L"}, "DryVent"),
+])
+def test_membrane_ignores_description_and_unrelated_specs(name, desc, specs, expected):
+    from gw.params import membrane
+    assert membrane(name, desc, specs) == expected

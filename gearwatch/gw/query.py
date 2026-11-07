@@ -181,12 +181,15 @@ def latest_rows(con, cfg: Config, include_stale: bool = False):
 
 
 def shell_ok(params: dict, membrana=None, warstwy=None, wodo_min=None, strict=False) -> tuple[bool, list[str]]:
-    """Filtry membrany / warstw / wodoodporności. Nieznana wartość: przepuszcza z '?' (chyba że strict)."""
+    """Filtry membrany / warstw / wodoodporności.
+
+    Membrana i warstwy: wybór konkretnej wartości pokazuje TYLKO produkty, przy których jest potwierdzona.
+    Wodoodporność: nieznana wartość przechodzi z '?' (chyba że strict)."""
     unknown = []
     if membrana:
         v = params.get("membrana")
         if v is None:
-            unknown.append("membrana ?")
+            return False, []
         elif membrana == "gore-tex" and not v.startswith("Gore-Tex"):
             return False, []
         elif membrana != "gore-tex" and v.lower() != membrana.lower():
@@ -194,7 +197,7 @@ def shell_ok(params: dict, membrana=None, warstwy=None, wodo_min=None, strict=Fa
     if warstwy:
         v = params.get("warstwy")
         if v is None:
-            unknown.append("warstwy ?")
+            return False, []
         elif v.replace(".", ",").upper() != warstwy.replace(".", ",").upper():
             return False, []
     if wodo_min:
