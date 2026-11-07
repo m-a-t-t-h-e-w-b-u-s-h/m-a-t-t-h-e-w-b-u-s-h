@@ -218,7 +218,6 @@ categories:
     subcategories:
       hardshell:
         keywords: [hardshell*, hard shell, gore-tex, goretex, gtx, membran*, przeciwdeszcz*, nieprzemakal*, 3l, 2.5l, 2,5l, pertex shield, futurelight, h2no, dryvent, ascentshell, event]
-        param_range: {znany_shell: true}   # znany model z modele.yaml (np. Patagonia Triolet)
         exclude: [softshell*, soft shell, puch*, down, windstopper*, infinium, do biegania, biegow*, running, run,
                   woven, wiatrowk*, windbreaker, windshell, wind jacket]
         season: całoroczna
@@ -247,7 +246,6 @@ categories:
     subcategories:
       hardshell:
         keywords: [hardshell*, hard shell, gore-tex, goretex, gtx, membran*, przeciwdeszcz*, nieprzemakal*, 3l, 2.5l, 2,5l, futurelight, h2no, dryvent, ascentshell]
-        param_range: {znany_shell: true}   # znany model z modele.yaml (np. Patagonia Triolet)
         exclude: [softshell*, soft shell]
         temp: [-20, 15]
         size: {labels: [M, L]}

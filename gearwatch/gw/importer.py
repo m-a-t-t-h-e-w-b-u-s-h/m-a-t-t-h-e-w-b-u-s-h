@@ -13,7 +13,7 @@ from . import db
 from .classify import classify
 from .config import ROOT, Config
 from .extract import Record, extract
-from .params import body_fit_params, detect_gender, extract_params, known_shell, layers, mat_r_value, membrane
+from .params import body_fit_params, detect_gender, extract_params, known_model_matches, layers, mat_r_value, membrane
 from .pricing import effective_price
 
 ARCHIVE = ROOT / "data" / "archive"
@@ -144,18 +144,21 @@ def reclassify(con, cfg: Config) -> dict:
             if r:
                 params["r_value"] = r
         mem = membrane(row["name"], row["description"] or "", specs)
-        km = known_shell(row["name"], row["brand"] or "", row["url"] or "")
-        if km:
-            params["znany_shell"] = str(km["model"])
-            if not mem or mem == "własna/inna":
-                mem = km["membrana"]
         if mem:
             params["membrana"] = mem
-        lay = layers(row["name"], row["description"] or "", specs, mem) or (km or {}).get("warstwy")
+        lay = layers(row["name"], row["description"] or "", specs, mem)
         if lay:
             params["warstwy"] = lay
+        params["_models"] = known_model_matches(row["name"], row["brand"] or "", row["url"] or "")
         res = classify(cfg, row["name"], row["context"] or "", " ".join([row["description"] or "", *map(str, specs.values())]),
                        row["brand"] or "", params, row["shop"], row["url"])
+        models = params.pop("_models")
+        if res.reason.startswith("znany model: "):
+            used = next(m for m in models if m["model"] == res.reason[len("znany model: "):])
+            params["model"] = used["model"]
+            for k, v in used["params"].items():  # tylko braki – nazwa/specyfikacja mają pierwszeństwo
+                if params.get(k) in (None, "własna/inna") or (k == "membrana" and params.get(k) is None):
+                    params[k] = v
         debug = {"kategorie": res.category_scores, "podkategorie": res.sub_scores, "trafienia": res.hits}
         con.execute("UPDATE products SET params=?, category=?, subcategory=?, class_reason=?, class_debug=? WHERE id=?",
                     (db.dumps(params), res.category, res.subcategory, res.reason, db.dumps(debug), row["id"]))

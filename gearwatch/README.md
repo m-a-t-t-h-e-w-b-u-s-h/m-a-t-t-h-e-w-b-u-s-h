@@ -94,12 +94,13 @@ membrana/warstwy pokazują tylko produkty, przy których są potwierdzone
 Przy wodoodporności produkty bez znanej wartości zostają z „?”, chyba że
 zaznaczysz „ukryj nieznaną wodoodporność”.
 
-**Znane modele** (`modele.yaml`): tabela modeli kurtek/spodni z membraną, np.
-Patagonia Triolet → Gore-Tex 3L, Mammut Nordwand → Gore-Tex Pro, Rab Downpour
-→ Pertex Shield. Używana, gdy sklep nie podaje membrany w nazwie (częste na
-Skalniku); dopasowany model trafia też do hardshelli. Tabela jest wpisana
-z pamięci – popraw/uzupełnij ją sam; specyfikacja ze strony produktu ma
-pierwszeństwo.
+**Znane modele** (`modele.yaml`): tabela modeli ze wszystkich kategorii –
+podkategoria i opcjonalnie parametry, np. Patagonia Triolet → hardshell,
+Gore-Tex 3L; Scarpa Ribelle → buty B2; La Sportiva Nepal → B3; DMM Dragonfly →
+mikrokamy; Petzl Nomic → czekan techniczny; Therm-a-Rest XLite NXT → mata
+zimowa, R 4,5. Znany model rozstrzyga podkategorię, gdy nazwa w sklepie jest
+skąpa; parametry uzupełnia tylko, gdy sklep ich nie podaje. Tabela jest
+wpisana z pamięci – popraw/uzupełnij ją sam.
 
 Wynik jest posortowany od najtańszej ceny efektywnej. Dla każdego produktu
 widać: cenę efektywną (i aktualną, jeśli się różni), sklep, nazwę,

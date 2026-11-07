@@ -138,6 +138,13 @@ def classify(cfg: Config, name: str, context: str = "", desc: str = "", brand: s
 
     cname = ranked[0][0]
     cat = cfg.categories[cname]
+    # znany model z modele.yaml rozstrzyga podkategorię (pierwszy wpis pasujący do tej kategorii)
+    for m in (params or {}).get("_models", []):
+        for sname in m["subs"]:
+            sub = cat.subcategories.get(sname)
+            if sub and not (sub.shops and shop not in sub.shops):
+                return Result(cname, sname, f"znany model: {m['model']}", cat_scores, {sname: 99},
+                              {"kategoria": cat_hits.get(cname, []), sname: [f"model:{m['model']}"]})
     sub_scores, sub_hits = {}, {}
     for sname, sub in cat.subcategories.items():
         if sname == cat.fallback:

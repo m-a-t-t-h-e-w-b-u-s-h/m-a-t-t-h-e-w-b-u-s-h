@@ -1,44 +1,145 @@
-# Znane modele kurtek/spodni przeciwdeszczowych i ich membrany.
+# Znane modele – rozstrzygają podkategorię (i opcjonalnie parametry), gdy nazwa w sklepie
+# jest skąpa, np. Skalnik: "Buty ribelle hd-tonic", "Kurtka triolet-black".
 #
-# Używane, gdy nazwa w sklepie nie podaje membrany (np. Skalnik: "Kurtka triolet-...").
-# Dopasowanie modelu = produkt dostaje parametr `membrana` (i `warstwy`, jeśli podane)
-# oraz trafia do podkategorii hardshell.
+#   model:  słowa z nazwy (bez polskich znaków i wielkości liter; "*" = prefiks)
+#   brand:  wymagana marka (w nazwie, marce produktu lub adresie) – przy modelach
+#           o pospolitych nazwach (Beta, Alpha, Spirit…), żeby nie łapać innych rzeczy
+#   sub:    podkategoria (albo lista – bierze pierwszą istniejącą w kategorii produktu,
+#           np. [ekspresowe, sportowe]: karabinek -> karabinki/ekspresowe, ekspres -> ekspresy/sportowe)
+#   params: parametry ustawiane, gdy sklep ich nie podaje (specyfikacja ze strony ma pierwszeństwo)
 #
-#   model:  słowa z nazwy (bez polskich znaków i wielkości liter, "*" = prefiks)
-#   brand:  wymagana marka (w nazwie, marce produktu lub adresie) – podawaj przy
-#           modelach o pospolitych nazwach (Beta, Alpha, Rush…), żeby nie łapać innych rzeczy
+# Kategorię produktu nadal wyznaczają reguły z wishlist.yaml (np. "Kurtka" / "Spodnie"),
+# więc wpis "nordwand" zadziała i dla kurtki, i dla spodni.
+# Pierwszy pasujący wpis wygrywa – bardziej szczegółowe modele wpisuj wyżej (np. "nepal cube" przed "nepal").
 #
 # UWAGA: wpisane z pamięci (bez dostępu do stron producentów), tylko modele, przy których
-# membrana jest dość pewna. Producenci zmieniają materiały między wersjami – jeśli coś się
-# nie zgadza z opisem w sklepie, popraw albo usuń wpis. Specyfikacja ze strony produktu
-# ma zawsze pierwszeństwo przed tą tabelą.
+# przypisanie jest dość pewne. Producenci zmieniają konstrukcje między wersjami – jeśli coś się
+# nie zgadza z opisem w sklepie, popraw albo usuń wpis. Liczb łatwych do pomylenia
+# (temperatury komfortu, wagi, czasy gotowania) celowo tu nie ma.
 
 models:
-  # --- Gore-Tex Pro
-  - {model: alpha sv, brand: Arc'teryx, membrana: Gore-Tex Pro, warstwy: 3L}
-  - {model: alpha ar, brand: Arc'teryx, membrana: Gore-Tex Pro, warstwy: 3L}
-  - {model: rush, brand: Arc'teryx, membrana: Gore-Tex Pro, warstwy: 3L}
-  - {model: nordwand, membrana: Gore-Tex Pro, warstwy: 3L}
-  - {model: taiss, membrana: Gore-Tex Pro, warstwy: 3L}
-  - {model: latok, membrana: Gore-Tex Pro, warstwy: 3L}
-  - {model: tupilak, membrana: Gore-Tex Pro, warstwy: 3L}
-  - {model: changabang, membrana: Gore-Tex Pro, warstwy: 3L}
 
-  # --- Gore-Tex
-  - {model: beta, brand: Arc'teryx, membrana: Gore-Tex}
-  - {model: zeta, brand: Arc'teryx, membrana: Gore-Tex}
-  - {model: sabre, brand: Arc'teryx, membrana: Gore-Tex}
-  - {model: triolet, membrana: Gore-Tex, warstwy: 3L}
-  - {model: lhotse, membrana: Gore-Tex}
-  - {model: makalu, membrana: Gore-Tex}
-  - {model: muztag, membrana: Gore-Tex}
-  - {model: minimalist, brand: Marmot, membrana: Gore-Tex Paclite, warstwy: "2,5L"}
-  - {model: calcite, membrana: Gore-Tex Paclite, warstwy: "2,5L"}
+  # ============ KURTKI / SPODNIE – hardshell z membraną
+  - {model: alpha sv, brand: Arc'teryx, sub: hardshell, params: {membrana: Gore-Tex Pro, warstwy: 3L}}
+  - {model: alpha ar, brand: Arc'teryx, sub: hardshell, params: {membrana: Gore-Tex Pro, warstwy: 3L}}
+  - {model: rush, brand: Arc'teryx, sub: hardshell, params: {membrana: Gore-Tex Pro, warstwy: 3L}}
+  - {model: nordwand, sub: hardshell, params: {membrana: Gore-Tex Pro, warstwy: 3L}}
+  - {model: taiss, sub: hardshell, params: {membrana: Gore-Tex Pro, warstwy: 3L}}
+  - {model: latok, sub: hardshell, params: {membrana: Gore-Tex Pro, warstwy: 3L}}
+  - {model: tupilak, sub: hardshell, params: {membrana: Gore-Tex Pro, warstwy: 3L}}
+  - {model: changabang, sub: hardshell, params: {membrana: Gore-Tex Pro, warstwy: 3L}}
+  - {model: beta, brand: Arc'teryx, sub: hardshell, params: {membrana: Gore-Tex}}
+  - {model: zeta, brand: Arc'teryx, sub: hardshell, params: {membrana: Gore-Tex}}
+  - {model: sabre, brand: Arc'teryx, sub: hardshell, params: {membrana: Gore-Tex}}
+  - {model: triolet, sub: hardshell, params: {membrana: Gore-Tex, warstwy: 3L}}
+  - {model: lhotse, sub: hardshell, params: {membrana: Gore-Tex}}
+  - {model: makalu, sub: hardshell, params: {membrana: Gore-Tex}}
+  - {model: muztag, sub: hardshell, params: {membrana: Gore-Tex}}
+  - {model: minimalist, brand: Marmot, sub: hardshell, params: {membrana: Gore-Tex Paclite, warstwy: "2,5L"}}
+  - {model: calcite, sub: hardshell, params: {membrana: Gore-Tex Paclite, warstwy: "2,5L"}}
+  - {model: torrentshell, sub: hardshell, params: {membrana: H2No, warstwy: 3L}}
+  - {model: granite crest, sub: hardshell, params: {membrana: H2No}}
+  - {model: storm10, sub: hardshell, params: {membrana: H2No}}
+  - {model: downpour, brand: Rab, sub: hardshell, params: {membrana: Pertex Shield}}
+  - {model: firewall, brand: Rab, sub: hardshell, params: {membrana: Pertex Shield}}
+  - {model: kinetic, brand: Rab, sub: hardshell, params: {membrana: własna/inna}}
 
-  # --- membrany własne marek
-  - {model: torrentshell, membrana: H2No, warstwy: 3L}
-  - {model: granite crest, membrana: H2No}
-  - {model: storm10, membrana: H2No}
-  - {model: downpour, brand: Rab, membrana: Pertex Shield}
-  - {model: firewall, brand: Rab, membrana: Pertex Shield}
-  - {model: kinetic, brand: Rab, membrana: własna/inna}
+  # ============ KURTKI / SPODNIE – softshell
+  - {model: gamma, brand: Arc'teryx, sub: softshell}
+  - {model: torque, brand: Rab, sub: softshell}
+  - {model: eisfeld, sub: softshell}
+
+  # ============ BUTY – B3 (raki automatyczne); szczegółowe przed ogólnymi
+  - {model: nepal cube, sub: b3}
+  - {model: nepal, sub: b3}
+  - {model: g2 evo, sub: b3}
+  - {model: g5 evo, sub: b3}
+  - {model: g-summit, sub: b3}
+  - {model: olympus mons, sub: b3}
+  - {model: phantom, brand: Scarpa, sub: b3}
+  - {model: mont blanc pro, sub: b3}
+  - {model: trango pro, sub: b3}
+  - {model: karka, sub: b3}
+  - {model: expert pro, brand: Zamberlan, sub: b3}
+
+  # ============ BUTY – B2 (raki półautomatyczne)
+  - {model: ribelle, sub: b2}
+  - {model: trango tech, sub: b2}
+  - {model: aequilibrium, sub: b2}
+  - {model: crow, brand: Salewa, sub: b2}
+  - {model: rapace, sub: b2}
+  - {model: mont blanc, sub: b2}
+  - {model: manta tech, sub: b2}
+  - {model: zodiac tech, sub: b2}
+  - {model: kento, brand: Mammut, sub: b2}
+
+  # ============ RAKI
+  - {model: g12 new-matic, sub: automatyczne}
+  - {model: g14 new-matic, sub: automatyczne}
+  - {model: g12 cramp-o-matic, sub: automatyczne}
+  - {model: g14 cramp-o-matic, sub: automatyczne}
+  - {model: dual-matic, sub: polautomatyczne}
+  - {model: new-classic, sub: koszykowe}
+  - {model: leverlock universal, sub: polautomatyczne}
+
+  # ============ CZEKANY
+  - {model: summit evo, brand: Petzl, sub: turystyczne}
+  - {model: glacier, brand: Petzl, sub: turystyczne}
+  - {model: raven, brand: Black Diamond, sub: turystyczne}
+  - {model: corsa, brand: Camp, sub: turystyczne}
+  - {model: neve, brand: Camp, sub: turystyczne}
+  - {model: air tech, brand: Grivel, sub: turystyczne}
+  - {model: g zero, sub: turystyczne}
+  - {model: g1, brand: Grivel, sub: turystyczne}
+  - {model: ghost, brand: Grivel, sub: turystyczne}
+  - {model: nomic, sub: techniczne}
+  - {model: ergo, brand: Petzl, sub: techniczne}
+  - {model: quark, brand: Petzl, sub: techniczne}
+  - {model: north machine, sub: techniczne}
+  - {model: x-monster, sub: techniczne}
+  - {model: fuel, brand: Black Diamond, sub: techniczne}
+  - {model: viper, brand: Black Diamond, sub: techniczne}
+
+  # ============ MECHANIKI
+  - {model: camalot z4, sub: mikrokamy}
+  - {model: z4, brand: Black Diamond, sub: mikrokamy}
+  - {model: dragonfly, sub: mikrokamy}
+  - {model: zero friend, sub: mikrokamy}
+  - {model: camalot c4, sub: friendy}
+  - {model: camalot ultralight, sub: friendy}
+  - {model: dragon cam, sub: friendy}
+  - {model: totem cam, sub: friendy}
+
+  # ============ KARABINKI / EKSPRESY (wg Twojego podziału: Hotwire/LiteWire = sport)
+  - {model: litewire, sub: [ekspresowe, sportowe]}
+  - {model: hotwire, sub: [ekspresowe, sportowe]}
+  - {model: spirit, brand: Petzl, sub: [ekspresowe, sportowe]}
+  - {model: djinn, brand: Petzl, sub: [ekspresowe, sportowe]}
+  - {model: miniwire, sub: gorskie}
+  - {model: ange, brand: Petzl, sub: gorskie}
+  - {model: nano 22, sub: gorskie}
+  - {model: helium, brand: DMM, sub: gorskie}
+  - {model: attache, brand: Petzl, sub: hms}
+  - {model: rocklock, sub: hms}
+
+  # ============ NAMIOTY
+  - {model: hubba, brand: MSR, sub: trzysezonowe}
+  - {model: elixir, brand: MSR, sub: trzysezonowe}
+  - {model: access, brand: MSR, sub: czterosezonowe}
+  - {model: copper spur, sub: trzysezonowe}
+  - {model: tiger wall, sub: trzysezonowe}
+  - {model: hornet, brand: Nemo, sub: trzysezonowe}
+  - {model: dragonfly, brand: Nemo, sub: trzysezonowe}
+  - {model: nammatj, sub: czterosezonowe}
+  - {model: jannu, sub: czterosezonowe}
+  - {model: soulo, sub: czterosezonowe}
+  - {model: staika, sub: czterosezonowe}
+
+  # ============ KARIMATY (R-value od producenta, wersje NXT)
+  - {model: xtherm nxt, sub: zimowe, params: {r_value: 7.3}}
+  - {model: xlite nxt, sub: zimowe, params: {r_value: 4.5}}
+  - {model: uberlite, sub: trzysezonowe, params: {r_value: 2.3}}
+  - {model: z lite sol, sub: trzysezonowe, params: {r_value: 2.0}}
+  - {model: mondoking, sub: zimowe, params: {r_value: 7.0}}
+  - {model: prolite plus, sub: trzysezonowe, params: {r_value: 3.2}}
+  - {model: prolite apex, sub: zimowe, params: {r_value: 4.0}}

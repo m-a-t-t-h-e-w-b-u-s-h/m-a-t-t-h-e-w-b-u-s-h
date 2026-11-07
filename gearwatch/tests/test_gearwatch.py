@@ -583,14 +583,11 @@ def test_temperature_filter_requires_known_values(cfg):
 
 @pytest.mark.parametrize("name,expected", [
     ("Materac Exped Ultra 5R M", 5.0),
-    ("Materac Therm-a-Rest NeoAir XLite NXT Regular", 4.5),
-    ("Materac neoair xtherm nxt regular", 7.3),
-    ("Karimata Therm-a-Rest Z Lite Sol Regular", 2.0),
     ("Mata samopompująca classic light km3595", None),
 ])
 def test_mat_r_value(name, expected):
     from gw.params import mat_r_value
-    assert mat_r_value(name) == expected
+    assert mat_r_value(name) == expected   # znane modele (XLite, XTherm…) są w modele.yaml
 
 
 def test_bag_length_in_name_too_short(cfg):
@@ -634,10 +631,11 @@ def test_reclassify_with_length_in_name(con, cfg, tmp_path):
     ("Mata samopompująca Therm a Rest ProLite Plus R - cayenne", "karimaty/trzysezonowe"),
 ])
 def test_tents_and_mats_real_names(cfg, name, expected):
-    from gw.params import mat_r_value
+    from gw.params import known_model_matches, mat_r_value
     pr = extract_params(name)
     if mat_r_value(name):
         pr["r_value"] = mat_r_value(name)
+    pr["_models"] = known_model_matches(name)
     r = classify(cfg, name, params=pr)
     assert f"{r.category}/{r.subcategory}" == expected, r
 
@@ -724,18 +722,27 @@ def test_membrane_ignores_description_and_unrelated_specs(name, desc, specs, exp
 
 
 
-@pytest.mark.parametrize("name,brand,url,mem,lay", [
-    ("Kurtka triolet-black", "", "", "Gore-Tex", "3L"),
-    ("Kurtka nordwand pro hs hooded", "", "", "Gore-Tex Pro", "3L"),
-    ("Kurtka torrentshell 3l-black", "", "", "H2No", "3L"),
-    ("Kurtka beta ar", "Arc'teryx", "", "Gore-Tex", None),
-    ("Kurtka beta ar", "", "", None, None),               # pospolita nazwa bez marki – nie zgadujemy
-    ("Kurtka downpour eco", "", "https://8a.pl/kurtka-rab-downpour-eco", "Pertex Shield", None),
+@pytest.mark.parametrize("name,brand,url,expected", [
+    ("Kurtka triolet-black", "", "", "kurtki/hardshell"),
+    ("Spodnie nordwand pro hs", "", "", "spodnie/hardshell"),
+    ("Kurtka beta ar", "", "", "kurtki/inne"),                     # pospolita nazwa bez marki – nie zgadujemy
+    ("Kurtka beta ar", "Arc'teryx", "", "kurtki/hardshell"),
+    ("Kurtka downpour eco", "", "https://8a.pl/kurtka-rab-downpour-eco", "kurtki/hardshell"),
+    ("Buty ribelle hd-tonic", "", "", "buty/b2"),
+    ("Buty nepal cube gtx", "", "", "buty/b3"),
+    ("Kość mechaniczna DMM Dragonfly 3", "", "", "kosci_mechaniki/mikrokamy"),
+    ("Namiot Nemo Dragonfly OSMO 2P", "", "", "namioty/trzysezonowe"),   # ten sam model, inna kategoria
+    ("Czekan Petzl Nomic", "", "", "czekany/techniczne"),
+    ("Karabinek Petzl Spirit", "", "", "karabinki/ekspresowe"),
+    ("Ekspres Petzl Spirit Express 12 cm", "", "", "ekspresy/sportowe"),
+    ("Materac Therm-a-Rest NeoAir XLite NXT Regular", "", "", "karimaty/zimowe"),
 ])
-def test_known_shell_models(name, brand, url, mem, lay):
-    from gw.params import known_shell
-    km = known_shell(name, brand, url)
-    assert (km or {}).get("membrana") == mem and (km or {}).get("warstwy") == lay
+def test_known_models_all_categories(cfg, name, brand, url, expected):
+    from gw.params import known_model_matches
+    params = extract_params(name)
+    params["_models"] = known_model_matches(name, brand, url)
+    r = classify(cfg, name, brand=brand, params=params, url=url)
+    assert f"{r.category}/{r.subcategory}" == expected, r
 
 
 def test_known_model_goes_to_hardshell_end_to_end(con, cfg, tmp_path):
@@ -751,3 +758,19 @@ def test_known_model_goes_to_hardshell_end_to_end(con, cfg, tmp_path):
     p = json.loads(row["params"])
     assert (row["category"], row["subcategory"]) == ("kurtki", "hardshell")
     assert p["membrana"] == "Gore-Tex" and p["warstwy"] == "3L"
+
+
+
+def test_known_model_params_applied_end_to_end(con, cfg, tmp_path):
+    cap = {"url": "https://8a.pl/maty", "captured_at": "2099-01-01T00:00:00Z",
+           "html": "<html><body><h1>Maty</h1><li class='product-item'>"
+                   "<a class='product-item-link' href='/materac-xlite'>Materac Therm-a-Rest NeoAir XLite NXT Regular</a>"
+                   "<span data-price-type='finalPrice' data-price-amount='899'></span></li></body></html>"}
+    f = tmp_path / "gearwatch-8a.pl-m.json"
+    f.write_text(json.dumps(cap))
+    import_file(con, cfg, f, archive=False)
+    reclassify(con, cfg)
+    row = con.execute("SELECT * FROM products").fetchone()
+    p = json.loads(row["params"])
+    assert (row["subcategory"], p["r_value"], p["model"]) == ("zimowe", 4.5, "xlite nxt")
+    assert "_models" not in p

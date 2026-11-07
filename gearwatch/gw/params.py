@@ -283,13 +283,6 @@ def layers(name: str, description: str = "", specs: dict | None = None, membrane
     return {"Gore-Tex Pro": "3L", "Gore-Tex Active": "3L", "Gore-Tex Paclite": "2,5L"}.get(membrane_label)
 
 
-# R-value znanych mat (dane producentów) – używane tylko, gdy nazwa/specyfikacja nie podaje R
-KNOWN_R = [
-    (r"xtherm\s+nxt", 7.3), (r"xtherm", 6.9), (r"xlite\s+nxt", 4.5), (r"uberlite", 2.3), (r"z\s?lite\s+sol", 2.0),
-    (r"mondoking", 7.0), (r"basecamp", 6.0), (r"prolite\s+plus", 3.2), (r"prolite\s+apex", 4.0),
-]
-
-
 def mat_r_value(name: str) -> float | None:
     n = normalize(name)
     if not re.search(r"karimat|mata|materac|pad|neoair|z\s?lite", n):
@@ -297,9 +290,6 @@ def mat_r_value(name: str) -> float | None:
     m = re.search(r"(?<![a-z0-9.,])(\d(?:[.,]\d)?)\s?r(?![a-z0-9])", n)  # Exped "Ultra 5R"
     if m:
         return _f(m.group(1))
-    for pat, r in KNOWN_R:
-        if re.search(pat, n):
-            return r
     return None
 
 
@@ -316,16 +306,19 @@ def known_models() -> list[dict]:
     return _KNOWN_MODELS
 
 
-def known_shell(name: str, brand: str = "", url: str = "") -> dict | None:
-    """Membrana/warstwy znanego modelu z modele.yaml (gdy sklep jej nie podaje)."""
+def known_model_matches(name: str, brand: str = "", url: str = "") -> list[dict]:
+    """Wszystkie pasujące wpisy z modele.yaml (w kolejności z pliku)."""
     from .text import has_keyword
     n = normalize(name)
     hay = " ".join([n, normalize(brand), normalize(re.sub(r"[/\-_.]+", " ", url or ""))])
+    out = []
     for m in known_models():
         if not has_keyword(n, str(m["model"])):
             continue
         b = m.get("brand")
         if b and normalize(b) not in hay:
             continue
-        return m
-    return None
+        subs = m.get("sub") or []
+        out.append({"model": str(m["model"]), "subs": subs if isinstance(subs, list) else [subs],
+                    "params": m.get("params") or {}})
+    return out
