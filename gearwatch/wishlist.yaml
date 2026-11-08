@@ -234,6 +234,23 @@ categories:
         size: {labels: [M, L]}
         params: [waga_g, membrana, warstwy, wodoodpornosc_mm, sezon]
         alert_below: 500
+      puchowe:
+        # puchówki, np. Rab Microlight Alpine, Neutrino, ME Lightline, Arc'teryx Cerium
+        keywords: [puch*, down, hydrophobic down, puchowk*]
+        exclude: [syntet*, primaloft, insulated, coreloft, thermoball, softshell*, hardshell*, gore-tex, gtx]
+        season: zima
+        temp: [-30, 5]
+        size: {labels: [M, L]}
+        params: [waga_g, sezon]
+      ocieplane:
+        # syntetyczne ocieplenie (Primaloft, Coreloft…), np. Arc'teryx Atom, Patagonia Nano Puff
+        keywords: [ocieplan*, syntet*, primaloft, insulated, coreloft, climashield, thermoball, nano puff, nano air,
+                   xenair, g-loft, polartec alpha]
+        exclude: [puch*, down, softshell*, hardshell*, gore-tex, gtx, membran*]
+        season: wiosna–zima
+        temp: [-15, 10]
+        size: {labels: [M, L]}
+        params: [waga_g, sezon]
       inne:
         keywords: []
         params: [waga_g]

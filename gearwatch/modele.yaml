@@ -49,6 +49,19 @@ models:
   - {model: torque, brand: Rab, sub: softshell}
   - {model: eisfeld, sub: softshell}
 
+  # ============ KURTKI – puchowe / ocieplane syntetycznie
+  - {model: microlight, brand: Rab, sub: puchowe}
+  - {model: neutrino, sub: puchowe}
+  - {model: electron, brand: Rab, sub: puchowe}
+  - {model: lightline, sub: puchowe}
+  - {model: cerium, sub: puchowe}
+  - {model: down sweater, sub: puchowe}
+  - {model: atom, brand: Arc'teryx, sub: ocieplane}
+  - {model: proton, brand: Arc'teryx, sub: ocieplane}
+  - {model: nano puff, sub: ocieplane}
+  - {model: nano-air, sub: ocieplane}
+  - {model: xenair, sub: ocieplane}
+
   # ============ BUTY – B3 (raki automatyczne); szczegółowe przed ogólnymi
   - {model: nepal cube, sub: b3}
   - {model: nepal, sub: b3}

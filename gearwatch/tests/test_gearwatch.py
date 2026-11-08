@@ -774,3 +774,19 @@ def test_known_model_params_applied_end_to_end(con, cfg, tmp_path):
     p = json.loads(row["params"])
     assert (row["subcategory"], p["r_value"], p["model"]) == ("zimowe", 4.5, "xlite nxt")
     assert "_models" not in p
+
+
+
+@pytest.mark.parametrize("name,brand,expected", [
+    ("Kurtka puchowa Rab Microlight Alpine Jacket - beluga", "", "kurtki/puchowe"),
+    ("Kurtka microlight alpine-ebony", "Rab", "kurtki/puchowe"),         # Skalnik: bez słowa "puchowa"
+    ("Kurtka ocieplana Arc'teryx Atom Hoody", "", "kurtki/ocieplane"),
+    ("Kurtka Patagonia Nano Puff Jacket", "", "kurtki/ocieplane"),
+    ("Kurtka Arc'teryx Beta AR Gore-Tex", "", "kurtki/hardshell"),
+])
+def test_down_and_insulated_jackets(cfg, name, brand, expected):
+    from gw.params import known_model_matches
+    params = extract_params(name)
+    params["_models"] = known_model_matches(name, brand)
+    r = classify(cfg, name, brand=brand, params=params)
+    assert f"{r.category}/{r.subcategory}" == expected, r
