@@ -12,6 +12,7 @@ Przykłady:
   python find.py "karabinki/inne" --short --limit 200   # jedna linia na produkt
   python find.py --unknown --short          # j.w. dla raportu unknown
   python find.py --unknown --csv unknown.csv
+  python find.py --raw "microlight"         # cała baza po nazwie, też poza wishlistą
   python find.py --history 42
   python find.py --categories               # lista kategorii/podkategorii
   python find.py --coverage                 # co już zebrano (podkategorie × sklepy)
@@ -156,6 +157,24 @@ def cmd_deals(con, cfg, args):
           "\n🔔 = poniżej progu alertu, ⬇min = najniższa cena w historii")
 
 
+def cmd_raw(con, cfg, args):
+    """Szuka w CAŁEJ bazie po nazwie – także poza wishlistą, ukryte i ze starymi cenami."""
+    from gw.text import normalize
+    words = normalize(args.raw).split()
+    rows = con.execute(
+        """SELECT p.*, (SELECT effective FROM prices WHERE product_id=p.id ORDER BY day DESC LIMIT 1) AS eff,
+                  (SELECT MAX(day) FROM prices WHERE product_id=p.id) AS last_day,
+                  EXISTS(SELECT 1 FROM hidden WHERE product_id=p.id) AS is_hidden
+           FROM products p""").fetchall()
+    found = [r for r in rows if all(w in normalize(r["name"]) for w in words)]
+    for r in sorted(found, key=lambda r: (r["eff"] is None, r["eff"] or 0)):
+        where = f"{r['category']}/{r['subcategory']}" if r["category"] else "poza wishlistą"
+        flags = " [UKRYTY]" if r["is_hidden"] else ""
+        print(f"#{r['id']:<6} {r['shop']:<8} {money(r['eff']):>12}  {r['name'][:70]}{flags}")
+        print(f"{'':>8} -> {where}  ({r['class_reason'] or '-'})  ostatnia cena: {r['last_day'] or '-'}")
+    print(f"Znaleziono: {len(found)}")
+
+
 def cmd_coverage(con, cfg, args):
     """Które podkategorie mają już produkty z których sklepów – puste = strona do odwiedzenia."""
     stats = {}
@@ -209,6 +228,7 @@ def main(argv=None):
     ap.add_argument("--deals", action="store_true", help="najlepsze oferty (rabat, spadek ceny, próg alertu)")
     ap.add_argument("--min-discount", type=float, default=0, metavar="PROC", help="z --deals: minimalny rabat w %%")
     ap.add_argument("--per-sub", action="store_true", help="z --deals: najlepsza oferta w każdej podkategorii")
+    ap.add_argument("--raw", metavar="TEKST", help="szukaj w całej bazie po nazwie (też poza wishlistą)")
     ap.add_argument("--hide", type=int, metavar="ID", help="ukryj produkt na stałe (wyniki, koszyk, alerty)")
     ap.add_argument("--unhide", type=int, metavar="ID", help="przywróć ukryty produkt")
     ap.add_argument("--wishlist", help="ścieżka do wishlist.yaml")
@@ -221,6 +241,9 @@ def main(argv=None):
         from gw import webapi
         (webapi.api_hide if args.hide else webapi.api_unhide)(con, cfg, {"id": args.hide or args.unhide})
         print(("Ukryto" if args.hide else "Przywrócono") + f" produkt #{args.hide or args.unhide}")
+        return
+    if args.raw:
+        cmd_raw(con, cfg, args)
         return
     if args.unknown:
         cmd_unknown(con, cfg, args)
