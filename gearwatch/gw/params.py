@@ -306,18 +306,39 @@ def known_models() -> list[dict]:
     return _KNOWN_MODELS
 
 
+# Marki, których obecność w nazwie znaczy "to NIE jest model innej marki" (np. "Kurtka Mammut Beta").
+# Bez krótkich, wieloznacznych słów (np. "camp" – występuje w "Easy Camp", "Camp Mat").
+OTHER_BRANDS = [
+    "mammut", "arcteryx", "rab", "patagonia", "the north face", "tnf", "salewa", "marmot", "mountain equipment",
+    "black diamond", "petzl", "grivel", "dmm", "wild country", "ocun", "climbing technology", "edelrid", "scarpa",
+    "la sportiva", "zamberlan", "garmont", "lowa", "meindl", "dachstein", "hanwag", "msr", "nemo", "big agnes",
+    "therm-a-rest", "therm a rest", "sea to summit", "exped", "robens", "osprey", "deuter", "montane", "dynafit",
+    "ortovox", "columbia", "jack wolfskin", "salomon", "haglofs", "fjallraven", "berghaus", "millet", "naturehike",
+    "fire maple", "singing rock", "kong", "adidas", "outdoor research", "mountain hardwear", "helly hansen",
+]
+
+
 def known_model_matches(name: str, brand: str = "", url: str = "") -> list[dict]:
-    """Wszystkie pasujące wpisy z modele.yaml (w kolejności z pliku)."""
+    """Wszystkie pasujące wpisy z modele.yaml (w kolejności z pliku).
+
+    Wpis z wymaganą marką pasuje, gdy ta marka jest w nazwie/marce/adresie produktu ALBO gdy produkt
+    nie ma żadnej znanej marki (np. Skalnik: "Kurtka microlight alpine-…" bez "Rab"). Odrzucany jest tylko,
+    gdy produkt ma INNĄ markę (np. "Kurtka Mammut Beta" nie jest Arc'teryx Beta).
+    """
     from .text import has_keyword
     n = normalize(name)
-    hay = " ".join([n, normalize(brand), normalize(re.sub(r"[/\-_.]+", " ", url or ""))])
+    nb_brand = normalize(brand)
+    hay = " ".join([n, nb_brand, normalize(re.sub(r"[/\-_.]+", " ", url or ""))])
+    present = {b for b in OTHER_BRANDS if has_keyword(n, b) or (nb_brand and nb_brand.startswith(b))}
     out = []
     for m in known_models():
         if not has_keyword(n, str(m["model"])):
             continue
         b = m.get("brand")
-        if b and normalize(b) not in hay:
-            continue
+        if b:
+            req = normalize(b)
+            if req not in hay and (present - {req} or (nb_brand and not nb_brand.startswith(req))):
+                continue  # produkt ma inną markę
         subs = m.get("sub") or []
         out.append({"model": str(m["model"]), "subs": subs if isinstance(subs, list) else [subs],
                     "params": m.get("params") or {}})

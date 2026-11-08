@@ -725,7 +725,9 @@ def test_membrane_ignores_description_and_unrelated_specs(name, desc, specs, exp
 @pytest.mark.parametrize("name,brand,url,expected", [
     ("Kurtka triolet-black", "", "", "kurtki/hardshell"),
     ("Spodnie nordwand pro hs", "", "", "spodnie/hardshell"),
-    ("Kurtka beta ar", "", "", "kurtki/inne"),                     # pospolita nazwa bez marki – nie zgadujemy
+    ("Kurtka beta ar", "", "", "kurtki/hardshell"),                # brak marki (Skalnik) – model wystarcza
+    ("Kurtka Mammut Beta Light", "", "", "kurtki/inne"),          # inna marka – to nie Arc'teryx Beta
+    ("Kurtka beta ar", "Mammut", "", "kurtki/inne"),
     ("Kurtka beta ar", "Arc'teryx", "", "kurtki/hardshell"),
     ("Kurtka downpour eco", "", "https://8a.pl/kurtka-rab-downpour-eco", "kurtki/hardshell"),
     ("Buty ribelle hd-tonic", "", "", "buty/b2"),
@@ -780,6 +782,8 @@ def test_known_model_params_applied_end_to_end(con, cfg, tmp_path):
 @pytest.mark.parametrize("name,brand,expected", [
     ("Kurtka puchowa Rab Microlight Alpine Jacket - beluga", "", "kurtki/puchowe"),
     ("Kurtka microlight alpine-ebony", "Rab", "kurtki/puchowe"),         # Skalnik: bez słowa "puchowa"
+    ("Kurtka microlight alpine-tempest blue", "", "kurtki/puchowe"),    # Skalnik: bez marki
+    ("Kurtka microlight alpine hoody women-black", "", "kurtki/puchowe"),
     ("Kurtka ocieplana Arc'teryx Atom Hoody", "", "kurtki/ocieplane"),
     ("Kurtka Patagonia Nano Puff Jacket", "", "kurtki/ocieplane"),
     ("Kurtka Arc'teryx Beta AR Gore-Tex", "", "kurtki/hardshell"),
