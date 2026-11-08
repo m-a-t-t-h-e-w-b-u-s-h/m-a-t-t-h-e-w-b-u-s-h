@@ -794,3 +794,11 @@ def test_down_and_insulated_jackets(cfg, name, brand, expected):
     params["_models"] = known_model_matches(name, brand)
     r = classify(cfg, name, brand=brand, params=params)
     assert f"{r.category}/{r.subcategory}" == expected, r
+
+
+
+def test_omnibus_lowest_price_is_not_current_price():
+    recs = extract({"html": (FIX / "omnibus.html").read_text(), "url": "https://www.skalnik.pl/kurtki-puchowe"})
+    by = {r.url.rsplit("/", 1)[-1]: r for r in recs}
+    assert (by["kurtka-microlight-alpine-tempest-blue"].price, by["kurtka-microlight-alpine-tempest-blue"].catalog_price) == (716.99, 1099.99)
+    assert (by["kurtka-test-magento"].price, by["kurtka-test-magento"].catalog_price) == (716.99, 1099.99)

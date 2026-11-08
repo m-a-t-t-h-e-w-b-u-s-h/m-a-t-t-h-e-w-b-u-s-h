@@ -8,3 +8,7 @@ z bookmarkletu warto dodać je tutaj jako fixtury regresyjne.
 Skalnika: link ze zdjęcia z plakietką rabatową (`-27%`, `BLACK MONTH -48%`)
 był brany jako nazwa produktu, a menu sklepu jako breadcrumbs. Markup jest
 nadal syntetyczny.
+
+`omnibus.html` – kafelki z informacją „najniższa cena z 30 dni przed obniżką”
+(dyrektywa Omnibus), którą ekstraktor brał wcześniej za cenę aktualną
+(Rab Microlight Alpine: 538,99 zł zamiast 716,99 zł). Markup syntetyczny.

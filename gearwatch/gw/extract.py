@@ -272,9 +272,37 @@ def _sizes(soup: BeautifulSoup) -> list[str]:
     return uniq
 
 
+OMNIBUS_RE = re.compile(r"najni[żz]sz\w*\s+cen\w*|lowest\s+price|30\s+dni\s+przed", re.I)
+# "538,99 zł najniższa cena z 30 dni przed obniżką +33%" / "Najniższa cena z 30 dni: 538,99 zł"
+_OMNIBUS_SPAN_RE = re.compile(
+    r"(?:\d{1,3}(?:[ \u00a0.]\d{3})*(?:[,.]\d{2})?\s*(?:zł|zl|PLN)\s*)?"
+    r"(?:najni[żz]sz\w*\s+cen\w*|lowest\s+price)(?:\s+z\s+30\s+dni(?:\s+przed\s+obni\w+)?)?[^0-9%]{0,40}"
+    r"(?:\d{1,3}(?:[ \u00a0.]\d{3})*(?:[,.]\d{2})?\s*(?:zł|zl|PLN))?\s*(?:[+\-−]?\s?\d+\s?%)?", re.I)
+
+
+def _is_omnibus(el) -> bool:
+    """Cena "najniższa z 30 dni przed obniżką" (dyrektywa Omnibus) – to NIE jest cena aktualna."""
+    node = el
+    for _ in range(3):  # tylko najbliższe, krótkie bloki – nie cały kafelek (ten zawiera też cenę aktualną)
+        if node is None:
+            break
+        if node is not el and len(node.select("[data-price-amount]")) > 1:
+            break  # blok z kilkoma cenami (np. cały kafelek) – dalej nie patrzymy
+        t = node.get_text(" ", strip=True) if hasattr(node, "get_text") else ""
+        if len(t) > 90:
+            break
+        if OMNIBUS_RE.search(t):
+            return True
+        node = node.parent
+    cls = " ".join(el.get("class") or []) + " " + " ".join((el.parent.get("class") or []) if el.parent else [])
+    return bool(re.search(r"omnibus|lowest", cls, re.I))
+
+
 def _magento_prices(scope) -> tuple[float | None, float | None]:
     final = old = None
     for el in scope.select("[data-price-type][data-price-amount]"):
+        if _is_omnibus(el):
+            continue
         amount = parse_price(el.get("data-price-amount"))
         kind = el.get("data-price-type")
         if kind == "finalPrice" and final is None:
@@ -321,6 +349,7 @@ def _magento_tiles(soup: BeautifulSoup, base_url: str, context: str) -> list[Rec
 
 
 def _prices_from_text(text: str) -> tuple[float | None, float | None]:
+    text = _OMNIBUS_SPAN_RE.sub(" ", text)  # bez "najniższej ceny z 30 dni"
     prices = sorted({parse_price(m.group(0)) for m in PRICE_RE.finditer(text)} - {None})
     if not prices:
         return None, None
