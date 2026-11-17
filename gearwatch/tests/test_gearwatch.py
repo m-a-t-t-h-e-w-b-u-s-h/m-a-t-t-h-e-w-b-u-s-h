@@ -802,3 +802,16 @@ def test_omnibus_lowest_price_is_not_current_price():
     by = {r.url.rsplit("/", 1)[-1]: r for r in recs}
     assert (by["kurtka-microlight-alpine-tempest-blue"].price, by["kurtka-microlight-alpine-tempest-blue"].catalog_price) == (716.99, 1099.99)
     assert (by["kurtka-test-magento"].price, by["kurtka-test-magento"].catalog_price) == (716.99, 1099.99)
+
+
+
+@pytest.mark.parametrize("name,expected", [
+    ("KURTKA EIGER NORDWAND PRO SO HOODED-EIGER BLUE-EIGER ORANGE", "kurtki/softshell"),
+    ("Kurtka Eiger Nordwand Pro HS Hooded", "kurtki/hardshell"),
+])
+def test_mammut_so_is_softshell(cfg, name, expected):
+    from gw.params import known_model_matches
+    params = extract_params(name)
+    params["_models"] = known_model_matches(name)
+    r = classify(cfg, name, params=params)
+    assert f"{r.category}/{r.subcategory}" == expected, r

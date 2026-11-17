@@ -23,6 +23,9 @@ models:
   - {model: alpha sv, brand: Arc'teryx, sub: hardshell, params: {membrana: Gore-Tex Pro, warstwy: 3L}}
   - {model: alpha ar, brand: Arc'teryx, sub: hardshell, params: {membrana: Gore-Tex Pro, warstwy: 3L}}
   - {model: rush, brand: Arc'teryx, sub: hardshell, params: {membrana: Gore-Tex Pro, warstwy: 3L}}
+  # Mammut: "SO" = softshell, "HS" = hardshell – wersja SO musi być PRZED ogólnym "nordwand"
+  - {model: nordwand pro so, sub: softshell}
+  - {model: nordwand so, sub: softshell}
   - {model: nordwand, sub: hardshell, params: {membrana: Gore-Tex Pro, warstwy: 3L}}
   - {model: taiss, sub: hardshell, params: {membrana: Gore-Tex Pro, warstwy: 3L}}
   - {model: latok, sub: hardshell, params: {membrana: Gore-Tex Pro, warstwy: 3L}}
